@@ -1,0 +1,6 @@
+build*
+*.out
+CMakeCache.txt
+CMaeFiles
+cmake_install.cmake
+*.kdev4

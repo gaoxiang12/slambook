@@ -29,7 +29,7 @@ int main( int argc, char** argv )
     // hat 为向量到反对称矩阵
     cout<<"so3 hat="<<Sophus::SO3::hat(so3)<<endl;
     // 相对的，vee为反对称到向量
-    cout<<"so3 hat vee= "<<Sophus::SO3::vee( Sophus::SO3::hat(so3) ).transpose()<<endl;
+    cout<<"so3 hat vee= "<<Sophus::SO3::vee( Sophus::SO3::hat(so3) ).transpose()<<endl; // transpose纯粹是为了输出美观一些
     
     // 增量扰动模型的更新
     Eigen::Vector3d update_so3(1e-4, 0, 0); //假设更新量为这么多
@@ -48,7 +48,7 @@ int main( int argc, char** argv )
     typedef Eigen::Matrix<double,6,1> Vector6d;
     Vector6d se3 = SE3_Rt.log();
     cout<<"se3 = "<<se3.transpose()<<endl;
-    // 观察输出，您会发现在Sophus中，se(3)是旋转在前，平移在后的。与我们的书中稍有不同。
+    // 观察输出，您会发现在Sophus中，se(3)的平移在前，旋转在后.
     // 同样的，有hat和vee两个算符
     cout<<"se3 hat = "<<endl<<Sophus::SE3::hat(se3)<<endl;
     cout<<"se3 hat vee = "<<Sophus::SE3::vee( Sophus::SE3::hat(se3) ).transpose()<<endl;

@@ -19,7 +19,10 @@ void EdgeSE3ProjectDirect::computeError()
     float y = x_local[1]*fy_/x_local[2] + cy_;
     // check x,y is in the image
     if ( x-4<0 || ( x+4 ) >image_->cols || ( y-4 ) <0 || ( y+4 ) >image_->rows )
+    {
         _error(0,0) = 999.0;
+        this->setLevel(1);
+    }
     else
     {
         _error(0,0) = getPixelValue(x,y) - _measurement;
@@ -76,8 +79,8 @@ void EdgeSE3ProjectDirect::linearizeOplus()
 
     Eigen::Matrix<double, 1, 2> jacobian_pixel_uv;
     
-    jacobian_pixel_uv ( 0,0 ) = ( getPixelValue(u+1,v)-getPixelValue(u,v) );
-    jacobian_pixel_uv ( 0,1 ) = ( getPixelValue(u,v+1)-getPixelValue(u,v) );
+    jacobian_pixel_uv ( 0,0 ) = ( getPixelValue(u+1,v)-getPixelValue(u-1,v) )/2;
+    jacobian_pixel_uv ( 0,1 ) = ( getPixelValue(u,v+1)-getPixelValue(u,v-1) )/2;
     
     _jacobianOplusXi = jacobian_pixel_uv*jacobian_uv_ksai;
 }

@@ -49,7 +49,6 @@ int main ( int argc, char** argv )
     //-- 估计两张图像间运动
     Mat R,t;
     pose_estimation_2d2d ( keypoints_1, keypoints_2, matches, R, t );
-    t *= -1;
 
     //-- 三角化
     vector<Point3d> points;
@@ -163,7 +162,7 @@ void pose_estimation_2d2d (
     cout<<"homography_matrix is "<<endl<<homography_matrix<<endl;
 
     //-- 从本质矩阵中恢复旋转和平移信息.
-    recoverPose ( essential_matrix, points2, points1, R, t, focal_length, principal_point );
+    recoverPose ( essential_matrix, points1, points2, R, t, focal_length, principal_point );
     cout<<"R is "<<endl<<R<<endl;
     cout<<"t is "<<endl<<t<<endl;
 }

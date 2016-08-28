@@ -16,6 +16,9 @@ void pose_estimation_2d2d ( std::vector<KeyPoint> keypoints_1,
                             std::vector< DMatch > matches,
                             Mat& R, Mat& t );
 
+// 像素坐标转相机归一化坐标
+Point2d pixel2cam( const Point2d& p, const Mat& K );
+
 int main( int argc, char** argv )
 {
     if ( argc != 3 )
@@ -43,6 +46,18 @@ int main( int argc, char** argv )
         -t.at<double>(1.0),     t.at<double>(0,0),      0);
     
     cout<<"t^R="<<endl<<t_x*R<<endl;
+    
+    //-- 验证对极约束
+    Mat K = ( Mat_<double> ( 3,3 ) << 520.9, 0, 325.1, 0, 521.0, 249.7, 0, 0, 1 );
+    for ( DMatch m: matches )
+    {
+        Point2d pt1 = pixel2cam( keypoints_1[ m.queryIdx ].pt, K );
+        Mat y1 = (Mat_<double>(3,1) << pt1.x, pt1.y, 1);
+        Point2d pt2 = pixel2cam( keypoints_2[ m.trainIdx ].pt, K );
+        Mat y2 = (Mat_<double>(3,1) << pt2.x, pt2.y, 1);
+        Mat d = y2.t() * t_x * R * y1;
+        cout << "epipolar constraint = " << d << endl;
+    }
     return 0;
 }
 
@@ -132,3 +147,13 @@ void pose_estimation_2d2d ( std::vector<KeyPoint> keypoints_1,
     cout<<"R is "<<endl<<R<<endl;
     cout<<"t is "<<endl<<t<<endl;
 }
+
+Point2d pixel2cam ( const Point2d& p, const Mat& K )
+{
+    return Point2d
+    (
+        ( p.x - K.at<double>(0,2) ) / K.at<double>(0,0), 
+        ( p.y - K.at<double>(1,2) ) / K.at<double>(1,1) 
+    );
+}
+

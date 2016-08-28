@@ -28,7 +28,7 @@ void triangulation (
 );
 
 // 像素坐标转相机归一化坐标
-Point2d pixel2cam( const Point2d& p, const Mat& K );
+Point2f pixel2cam( const Point2d& p, const Mat& K );
 
 int main ( int argc, char** argv )
 {
@@ -49,6 +49,7 @@ int main ( int argc, char** argv )
     //-- 估计两张图像间运动
     Mat R,t;
     pose_estimation_2d2d ( keypoints_1, keypoints_2, matches, R, t );
+    t *= -1;
 
     //-- 三角化
     vector<Point3d> points;
@@ -59,14 +60,21 @@ int main ( int argc, char** argv )
     for ( int i=0; i<matches.size(); i++ )
     {
         Point2d pt1_cam = pixel2cam( keypoints_1[ matches[i].queryIdx ].pt, K );
-        Point2d pt1_cam_reproject(
+        Point2d pt1_cam_3d(
             points[i].x/points[i].z, 
             points[i].y/points[i].z 
         );
         
-        cout<<"point in first camera frame: "<<pt1_cam<<endl;
-        cout<<"point reprojected from 3D "<<pt1_cam_reproject<<", d="<<points[i].z<<endl<<endl;
-        // 第2个图亦可类似验证，这里就不写了
+        cout<<"point in the first camera frame: "<<pt1_cam<<endl;
+        cout<<"point projected from 3D "<<pt1_cam_3d<<", d="<<points[i].z<<endl;
+        
+        // 第二个图
+        Point2f pt2_cam = pixel2cam( keypoints_2[ matches[i].trainIdx ].pt, K );
+        Mat pt2_trans = R*( Mat_<double>(3,1) << points[i].x, points[i].y, points[i].z ) + t;
+        pt2_trans /= pt2_trans.at<double>(2,0);
+        cout<<"point in the second camera frame: "<<pt2_cam<<endl;
+        cout<<"point reprojected from second frame: "<<pt2_trans.t()<<endl;
+        cout<<endl;
     }
     
     return 0;
@@ -167,18 +175,18 @@ void triangulation (
     const Mat& R, const Mat& t, 
     vector< Point3d >& points )
 {
-    Mat T1 = (Mat_<double> (3,4) <<
+    Mat T1 = (Mat_<float> (3,4) <<
         1,0,0,0,
         0,1,0,0,
         0,0,1,0);
-    Mat T2 = (Mat_<double> (3,4) <<
+    Mat T2 = (Mat_<float> (3,4) <<
         R.at<double>(0,0), R.at<double>(0,1), R.at<double>(0,2), t.at<double>(0,0),
         R.at<double>(1,0), R.at<double>(1,1), R.at<double>(1,2), t.at<double>(1,0),
         R.at<double>(2,0), R.at<double>(2,1), R.at<double>(2,2), t.at<double>(2,0)
     );
     
     Mat K = ( Mat_<double> ( 3,3 ) << 520.9, 0, 325.1, 0, 521.0, 249.7, 0, 0, 1 );
-    vector<Point2d> pts_1, pts_2;
+    vector<Point2f> pts_1, pts_2;
     for ( DMatch m:matches )
     {
         // 将像素坐标转换至相机坐标
@@ -192,20 +200,20 @@ void triangulation (
     // 转换成非齐次坐标
     for ( int i=0; i<pts_4d.cols; i++ )
     {
-        double d4 = pts_4d.at<double>(3,i);
+        Mat x = pts_4d.col(i);
+        x /= x.at<float>(3,0); // 归一化
         Point3d p (
-            pts_4d.at<double>(0,i) / d4, 
-            pts_4d.at<double>(1,i) / d4, 
-            pts_4d.at<double>(2,i) / d4
+            x.at<float>(0,0), 
+            x.at<float>(1,0), 
+            x.at<float>(2,0) 
         );
-        if ( p.z < 0 ) p*=-1; 
         points.push_back( p );
     }
 }
 
-Point2d pixel2cam ( const Point2d& p, const Mat& K )
+Point2f pixel2cam ( const Point2d& p, const Mat& K )
 {
-    return Point2d
+    return Point2f
     (
         ( p.x - K.at<double>(0,2) ) / K.at<double>(0,0), 
         ( p.y - K.at<double>(1,2) ) / K.at<double>(1,1) 

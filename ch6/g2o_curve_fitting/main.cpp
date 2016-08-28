@@ -17,7 +17,6 @@ class CurveFittingVertex: public g2o::BaseVertex<3, Eigen::Vector3d>
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-public:
     virtual void setToOriginImpl() // 重置
     {
         _estimate << 0,0,0;

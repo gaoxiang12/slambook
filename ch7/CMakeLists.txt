@@ -34,3 +34,10 @@ target_link_libraries( pose_estimation_3d2d
     g2o_core g2o_stuff g2o_solver_csparse g2o_types_sba g2o_csparse_extension
     ${CSPARSE_LIBRARY}
 )
+
+add_executable( pose_estimation_3d3d pose_estimation_3d3d.cpp )
+target_link_libraries( pose_estimation_3d3d 
+    ${OpenCV_LIBS}
+    g2o_core g2o_stuff g2o_solver_csparse g2o_types_sba g2o_csparse_extension
+    ${CSPARSE_LIBRARY}
+)

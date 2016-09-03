@@ -25,9 +25,9 @@ void find_feature_matches (
 // 像素坐标转相机归一化坐标
 Point2d pixel2cam ( const Point2d& p, const Mat& K );
 
-void bundleAdjustment( 
-    const vector<Point3f> points_3d, 
-    const vector<Point2f> points_2d, 
+void bundleAdjustment (
+    const vector<Point3f> points_3d,
+    const vector<Point2f> points_2d,
     const Mat& K,
     Mat& R, Mat& t
 );
@@ -49,35 +49,35 @@ int main ( int argc, char** argv )
     cout<<"一共找到了"<<matches.size() <<"组匹配点"<<endl;
 
     // 建立3D点
-    Mat d1 = imread( argv[3], CV_LOAD_IMAGE_UNCHANGED );        // 深度图为16位无符号数，单通道图像
+    Mat d1 = imread ( argv[3], CV_LOAD_IMAGE_UNCHANGED );       // 深度图为16位无符号数，单通道图像
     Mat K = ( Mat_<double> ( 3,3 ) << 520.9, 0, 325.1, 0, 521.0, 249.7, 0, 0, 1 );
     vector<Point3f> pts_3d;
     vector<Point2f> pts_2d;
     for ( DMatch m:matches )
     {
-        ushort d = d1.ptr<unsigned short> ( int(keypoints_1[m.queryIdx].pt.y) )[ int(keypoints_1[m.queryIdx].pt.x) ];
+        ushort d = d1.ptr<unsigned short> ( int ( keypoints_1[m.queryIdx].pt.y ) ) [ int ( keypoints_1[m.queryIdx].pt.x ) ];
         if ( d == 0 )   // bad depth
             continue;
         float dd = d/1000.0;
-        Point2d p1 = pixel2cam( keypoints_1[m.queryIdx].pt, K );
-        pts_3d.push_back( Point3f(p1.x*dd, p1.y*dd, dd) );
+        Point2d p1 = pixel2cam ( keypoints_1[m.queryIdx].pt, K );
+        pts_3d.push_back ( Point3f ( p1.x*dd, p1.y*dd, dd ) );
         pts_2d.push_back ( keypoints_2[m.trainIdx].pt );
     }
-    
-    cout<<"3d-2d pairs: "<<pts_3d.size()<<endl;
-    
+
+    cout<<"3d-2d pairs: "<<pts_3d.size() <<endl;
+
     Mat r, t;
-    solvePnP( pts_3d, pts_2d, K, Mat(), r, t, false, cv::SOLVEPNP_EPNP ); // 调用OpenCV 的 PnP 求解，可选择EPNP，DLS等方法
-    Mat R; 
-    cv::Rodrigues(r, R); // r为旋转向量形式，用Rodrigues公式转换为矩阵
-    
+    solvePnP ( pts_3d, pts_2d, K, Mat(), r, t, false, cv::SOLVEPNP_EPNP ); // 调用OpenCV 的 PnP 求解，可选择EPNP，DLS等方法
+    Mat R;
+    cv::Rodrigues ( r, R ); // r为旋转向量形式，用Rodrigues公式转换为矩阵
+
     cout<<"R="<<endl<<R<<endl;
     cout<<"t="<<endl<<t<<endl;
-    
+
     cout<<"calling bundle adjustment"<<endl;
     // cout<<"R.type="<<R.type()<<", 32F="<<CV_32F<<", 64F="<<CV_64F<<endl;
-    
-    bundleAdjustment( pts_3d, pts_2d, K, R, t );
+
+    bundleAdjustment ( pts_3d, pts_2d, K, R, t );
 }
 
 void find_feature_matches ( const Mat& img_1, const Mat& img_2,
@@ -135,74 +135,74 @@ Point2d pixel2cam ( const Point2d& p, const Mat& K )
            );
 }
 
-void bundleAdjustment ( 
-    const vector< Point3f > points_3d, 
-    const vector< Point2f > points_2d, 
-    const Mat& K, 
+void bundleAdjustment (
+    const vector< Point3f > points_3d,
+    const vector< Point2f > points_2d,
+    const Mat& K,
     Mat& R, Mat& t )
 {
     // 初始化g2o
     typedef g2o::BlockSolver< g2o::BlockSolverTraits<6,3> > Block;  // pose维度为 6, landmark 维度为 3
     Block::LinearSolverType* linearSolver = new g2o::LinearSolverCSparse<Block::PoseMatrixType>(); // 线性方程求解器
-    Block* solver_ptr = new Block( linearSolver );      // 矩阵块求解器
-    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg( solver_ptr );
+    Block* solver_ptr = new Block ( linearSolver );     // 矩阵块求解器
+    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( solver_ptr );
     g2o::SparseOptimizer optimizer;
-    optimizer.setAlgorithm( solver );
-    
-    // vertex 
+    optimizer.setAlgorithm ( solver );
+
+    // vertex
     g2o::VertexSE3Expmap* pose = new g2o::VertexSE3Expmap(); // camera pose
     Eigen::Matrix3d R_mat;
-    R_mat << 
-        R.at<double>(0,0), R.at<double>(0,1), R.at<double>(0,2),
-        R.at<double>(1,0), R.at<double>(1,1), R.at<double>(1,2),
-        R.at<double>(2,0), R.at<double>(2,1), R.at<double>(2,2);
-    pose->setId(0);
-    pose->setEstimate( g2o::SE3Quat( 
-        R_mat, 
-        Eigen::Vector3d( t.at<double>(0,0), t.at<double>(1,0), t.at<double>(2,0)) 
-    ) );
-    optimizer.addVertex( pose );
-    
+    R_mat <<
+        R.at<double> ( 0,0 ), R.at<double> ( 0,1 ), R.at<double> ( 0,2 ),
+        R.at<double> ( 1,0 ), R.at<double> ( 1,1 ), R.at<double> ( 1,2 ),
+        R.at<double> ( 2,0 ), R.at<double> ( 2,1 ), R.at<double> ( 2,2 );
+    pose->setId ( 0 );
+    pose->setEstimate ( g2o::SE3Quat (
+                            R_mat,
+                            Eigen::Vector3d ( t.at<double> ( 0,0 ), t.at<double> ( 1,0 ), t.at<double> ( 2,0 ) )
+                        ) );
+    optimizer.addVertex ( pose );
+
     int index = 1;
     for ( const Point3f p:points_3d )   // landmarks
     {
         g2o::VertexSBAPointXYZ* point = new g2o::VertexSBAPointXYZ();
-        point->setId( index++ );
-        point->setEstimate( Eigen::Vector3d(p.x, p.y, p.z) );
-        point->setMarginalized( true );
-        optimizer.addVertex( point );
+        point->setId ( index++ );
+        point->setEstimate ( Eigen::Vector3d ( p.x, p.y, p.z ) );
+        point->setMarginalized ( true );
+        optimizer.addVertex ( point );
     }
-    
-    // parameter: camera intrinsics 
-    g2o::CameraParameters* camera = new g2o::CameraParameters( 
-        K.at<double>(0,0), Eigen::Vector2d(K.at<double>(0,2), K.at<double>(1,2)), 0 
+
+    // parameter: camera intrinsics
+    g2o::CameraParameters* camera = new g2o::CameraParameters (
+        K.at<double> ( 0,0 ), Eigen::Vector2d ( K.at<double> ( 0,2 ), K.at<double> ( 1,2 ) ), 0
     );
-    camera->setId(0);
-    optimizer.addParameter( camera );
-    
-    // edges 
+    camera->setId ( 0 );
+    optimizer.addParameter ( camera );
+
+    // edges
     index = 1;
     for ( const Point2f p:points_2d )
     {
         g2o::EdgeProjectXYZ2UV* edge = new g2o::EdgeProjectXYZ2UV();
-        edge->setId( index );
-        edge->setVertex( 0, dynamic_cast<g2o::VertexSBAPointXYZ*> (optimizer.vertex(index)) );
-        edge->setVertex( 1, pose );
-        edge->setMeasurement( Eigen::Vector2d( p.x, p.y ) );
-        edge->setParameterId(0,0);
-        edge->setInformation( Eigen::Matrix2d::Identity() );
-        optimizer.addEdge(edge);
+        edge->setId ( index );
+        edge->setVertex ( 0, dynamic_cast<g2o::VertexSBAPointXYZ*> ( optimizer.vertex ( index ) ) );
+        edge->setVertex ( 1, pose );
+        edge->setMeasurement ( Eigen::Vector2d ( p.x, p.y ) );
+        edge->setParameterId ( 0,0 );
+        edge->setInformation ( Eigen::Matrix2d::Identity() );
+        optimizer.addEdge ( edge );
         index++;
     }
-    
+
     chrono::steady_clock::time_point t1 = chrono::steady_clock::now();
-    optimizer.setVerbose( true );
+    optimizer.setVerbose ( true );
     optimizer.initializeOptimization();
-    optimizer.optimize(100);
+    optimizer.optimize ( 100 );
     chrono::steady_clock::time_point t2 = chrono::steady_clock::now();
-    chrono::duration<double> time_used = chrono::duration_cast<chrono::duration<double>>(t2-t1);
-    cout<<"optimization costs time: "<<time_used.count()<<" seconds."<<endl;
-    
+    chrono::duration<double> time_used = chrono::duration_cast<chrono::duration<double>> ( t2-t1 );
+    cout<<"optimization costs time: "<<time_used.count() <<" seconds."<<endl;
+
     cout<<endl<<"after optimization:"<<endl;
-    cout<<"T="<<endl<<Eigen::Isometry3d( pose->estimate() ).matrix()<<endl;
+    cout<<"T="<<endl<<Eigen::Isometry3d ( pose->estimate() ).matrix() <<endl;
 }

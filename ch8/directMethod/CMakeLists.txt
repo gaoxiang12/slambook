@@ -21,3 +21,6 @@ set( G2O_LIBS
 
 add_executable( direct_sparse direct_sparse.cpp )
 target_link_libraries( direct_sparse ${OpenCV_LIBS} ${G2O_LIBS} )
+
+add_executable( direct_semidense direct_semidense.cpp )
+target_link_libraries( direct_semidense ${OpenCV_LIBS} ${G2O_LIBS} )

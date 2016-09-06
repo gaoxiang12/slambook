@@ -15,11 +15,9 @@ include_directories( ${G2O_INCLUDE_DIRS} )
 
 include_directories( "/usr/include/eigen3" )
 
-add_library( g2o_types_direct g2o_types.cpp )
-
 set( G2O_LIBS 
     g2o_core g2o_types_sba g2o_solver_csparse g2o_stuff g2o_csparse_extension 
 )
 
 add_executable( direct_sparse direct_sparse.cpp )
-target_link_libraries( direct_sparse g2o_types_direct ${OpenCV_LIBS} ${G2O_LIBS} )
+target_link_libraries( direct_sparse ${OpenCV_LIBS} ${G2O_LIBS} )

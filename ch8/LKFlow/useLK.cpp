@@ -42,6 +42,8 @@ int main( int argc, char** argv )
             last_color = color;
             continue;
         }
+        if ( color.data==nullptr || depth.data==nullptr )
+            continue;
         // 对其他帧用LK跟踪特征点
         vector<cv::Point2f> next_keypoints; 
         vector<cv::Point2f> prev_keypoints;

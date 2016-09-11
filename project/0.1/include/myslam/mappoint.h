@@ -28,7 +28,7 @@ class MapPoint
 {
 public:
     typedef shared_ptr<MapPoint> Ptr;
-    long        id_;        // ID
+    unsigned long      id_;        // ID
     bool        good_;      // wheter a good point 
     Vector3d    pos_;       // Position in world
     Vector3d    norm_;      // Normal of viewing direction 

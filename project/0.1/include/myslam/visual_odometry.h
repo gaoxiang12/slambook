@@ -53,6 +53,7 @@ public:
     int num_of_features_;   // number of features
     double scale_factor_;   // scale in image pyramid
     int level_pyramid_;     // number of pyramid levels
+    float match_ratio_;      // ratio for selecting good matches
     
     
 public: // functions 
@@ -66,6 +67,7 @@ protected:  // inner operation
     void computeDescriptors(); 
     void addAllKeypointsIntoMap(); 
     void featureMatching();
+    void poseEstimation3D3D(); 
     
 };
 }

@@ -32,7 +32,7 @@ class Frame
 {
 public:
     typedef std::shared_ptr<Frame> Ptr;
-    long                           id_;         // id of this frame
+    unsigned long                  id_;         // id of this frame
     double                         time_stamp_; // when it is recorded
     SE3                            T_c_w_;      // transform from frame to world
     Camera::Ptr                    camera_;     // Pinhole RGBD Camera model 

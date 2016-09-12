@@ -27,7 +27,7 @@ set( THIRD_PARTY_LIBS
     ${Sophus_LIBRARIES}
     g2o_core g2o_stuff g2o_types_sba
 )
-############### source and test ######################
+############### dependencies ######################
 include_directories( ${PROJECT_SOURCE_DIR}/include )
 add_subdirectory( src )
 add_subdirectory( test )

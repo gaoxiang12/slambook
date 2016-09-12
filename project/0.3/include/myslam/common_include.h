@@ -17,30 +17,34 @@
  *
  */
 
-#ifndef MAPPOINT_H
-#define MAPPOINT_H
 
-namespace myslam
-{
-    
-class Frame;
-class MapPoint
-{
-public:
-    typedef shared_ptr<MapPoint> Ptr;
-    unsigned long      id_; // ID
-    Vector3d    pos_;       // Position in world
-    Vector3d    norm_;      // Normal of viewing direction 
-    Mat         descriptor_; // Descriptor for matching 
-    int         observed_times_;    // being observed by feature matching algo.
-    int         correct_times_;     // being an inliner in pose estimation
-    
-    MapPoint();
-    MapPoint( long id, Vector3d position, Vector3d norm );
-    
-    // factory function
-    static MapPoint::Ptr createMapPoint();
-};
-}
+#ifndef COMMON_INCLUDE_H
+#define COMMON_INCLUDE_H
 
-#endif // MAPPOINT_H
+// define the commonly included file to avoid a long include list
+// for Eigen
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+using Eigen::Vector2d;
+using Eigen::Vector3d;
+
+// for Sophus
+#include <sophus/se3.h>
+using Sophus::SE3;
+
+// for cv
+#include <opencv2/core/core.hpp>
+using cv::Mat;
+
+// std 
+#include <vector>
+#include <list>
+#include <memory>
+#include <string>
+#include <iostream>
+#include <set>
+#include <unordered_map>
+#include <map>
+
+using namespace std; 
+#endif

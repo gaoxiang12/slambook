@@ -17,30 +17,27 @@
  *
  */
 
-#ifndef MAPPOINT_H
-#define MAPPOINT_H
+#ifndef MAP_H
+#define MAP_H
+
+#include "myslam/common_include.h"
+#include "myslam/frame.h"
+#include "myslam/mappoint.h"
 
 namespace myslam
 {
-    
-class Frame;
-class MapPoint
+class Map
 {
 public:
-    typedef shared_ptr<MapPoint> Ptr;
-    unsigned long      id_; // ID
-    Vector3d    pos_;       // Position in world
-    Vector3d    norm_;      // Normal of viewing direction 
-    Mat         descriptor_; // Descriptor for matching 
-    int         observed_times_;    // being observed by feature matching algo.
-    int         correct_times_;     // being an inliner in pose estimation
+    typedef shared_ptr<Map> Ptr;
+    unordered_map<unsigned long, MapPoint::Ptr >  map_points_;        // all landmarks
+    unordered_map<unsigned long, Frame::Ptr >     keyframes_;         // all key-frames
+
+    Map() {}
     
-    MapPoint();
-    MapPoint( long id, Vector3d position, Vector3d norm );
-    
-    // factory function
-    static MapPoint::Ptr createMapPoint();
+    void insertKeyFrame( Frame::Ptr frame );
+    void insertMapPoint( MapPoint::Ptr map_point );
 };
 }
 
-#endif // MAPPOINT_H
+#endif // MAP_H

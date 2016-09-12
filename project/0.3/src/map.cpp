@@ -17,30 +17,35 @@
  *
  */
 
-#ifndef MAPPOINT_H
-#define MAPPOINT_H
+#include "myslam/map.h"
 
 namespace myslam
 {
-    
-class Frame;
-class MapPoint
+
+void Map::insertKeyFrame ( Frame::Ptr frame )
 {
-public:
-    typedef shared_ptr<MapPoint> Ptr;
-    unsigned long      id_; // ID
-    Vector3d    pos_;       // Position in world
-    Vector3d    norm_;      // Normal of viewing direction 
-    Mat         descriptor_; // Descriptor for matching 
-    int         observed_times_;    // being observed by feature matching algo.
-    int         correct_times_;     // being an inliner in pose estimation
-    
-    MapPoint();
-    MapPoint( long id, Vector3d position, Vector3d norm );
-    
-    // factory function
-    static MapPoint::Ptr createMapPoint();
-};
+    cout<<"Key frame size = "<<keyframes_.size()<<endl;
+    if ( keyframes_.find(frame->id_) == keyframes_.end() )
+    {
+        keyframes_.insert( make_pair(frame->id_, frame) );
+    }
+    else
+    {
+        keyframes_[ frame->id_ ] = frame;
+    }
 }
 
-#endif // MAPPOINT_H
+void Map::insertMapPoint ( MapPoint::Ptr map_point )
+{
+    if ( map_points_.find(map_point->id_) == map_points_.end() )
+    {
+        map_points_.insert( make_pair(map_point->id_, map_point) );
+    }
+    else 
+    {
+        map_points_[map_point->id_] = map_point;
+    }
+}
+
+
+}

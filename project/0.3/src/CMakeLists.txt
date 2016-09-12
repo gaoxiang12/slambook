@@ -3,6 +3,9 @@ add_library( myslam SHARED
     mappoint.cpp
     map.cpp
     camera.cpp
+    config.cpp
+    visual_odometry.cpp
+    g2o_types.cpp
 )
 
 target_link_libraries( myslam

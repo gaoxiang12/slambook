@@ -17,30 +17,30 @@
  *
  */
 
-#ifndef MAPPOINT_H
-#define MAPPOINT_H
+#include "myslam/common_include.h"
+#include "myslam/mappoint.h"
 
 namespace myslam
 {
-    
-class Frame;
-class MapPoint
+
+MapPoint::MapPoint()
+: id_(-1), pos_(Vector3d(0,0,0)), norm_(Vector3d(0,0,0)), good_(true), observed_times_(0), correct_times_(0)
 {
-public:
-    typedef shared_ptr<MapPoint> Ptr;
-    unsigned long      id_; // ID
-    Vector3d    pos_;       // Position in world
-    Vector3d    norm_;      // Normal of viewing direction 
-    Mat         descriptor_; // Descriptor for matching 
-    int         observed_times_;    // being observed by feature matching algo.
-    int         correct_times_;     // being an inliner in pose estimation
-    
-    MapPoint();
-    MapPoint( long id, Vector3d position, Vector3d norm );
-    
-    // factory function
-    static MapPoint::Ptr createMapPoint();
-};
+
 }
 
-#endif // MAPPOINT_H
+MapPoint::MapPoint ( long id, Vector3d position, Vector3d norm )
+: id_(id), pos_(position), norm_(norm), good_(true), observed_times_(0), correct_times_(0)
+{
+
+}
+
+MapPoint::Ptr MapPoint::createMapPoint()
+{
+    static long factory_id = 0;
+    return MapPoint::Ptr( 
+        new MapPoint( factory_id++, Vector3d(0,0,0), Vector3d(0,0,0) )
+    );
+}
+
+}

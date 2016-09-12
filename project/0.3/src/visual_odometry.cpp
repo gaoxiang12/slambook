@@ -170,7 +170,7 @@ void VisualOdometry::featureMatching()
         }
         Vector3d view_angle = point->pos_ - curr_->getCamCenter();
         view_angle.normalize();
-        if ( ( view_angle.transpose() *point->norm_ ) < 0.8 ) // v^T*n>cos(60)
+        if ( ( view_angle.transpose() *point->norm_ ) < 0.6 ) // v^T*n>cos(60)
             continue;
         pts_candidate.push_back ( point );
         descriptor_map.push_back ( point->descriptor_ );
@@ -271,7 +271,7 @@ void VisualOdometry::poseEstimationRGBD()
     // start optimization
     optimizer.setVerbose ( false );
     optimizer.initializeOptimization();
-    optimizer.optimize ( 5 );
+    optimizer.optimize ( 10 );
 
     int num_outliers = 0;
     // remove the outlier
@@ -299,7 +299,7 @@ void VisualOdometry::poseEstimationRGBD()
                         ) );
 
     optimizer.initializeOptimization();
-    optimizer.optimize ( 5 );
+    optimizer.optimize ( 10 );
 
     cout<<"pose before: "<<curr_->T_c_w_.matrix() <<endl;
     cout<<"pose after: "<<pose->estimate() <<endl;
@@ -386,12 +386,14 @@ void VisualOdometry::addKeyFrame()
             iter = map_->map_points_.erase(iter);
             continue;
         }
+        /*
         Vector2d pixel = curr_->camera_->camera2pixel(p_cam);
         if ( pixel(0,0)<-20 || pixel(1,0)<-20 || pixel(0,0)>curr_->color_.cols+20 || pixel(1,0)>curr_->color_.rows+20 )
         {
             iter = map_->map_points_.erase(iter);
             continue;
         }
+        */
         iter++;
     }
     map_->map_points_.clear();

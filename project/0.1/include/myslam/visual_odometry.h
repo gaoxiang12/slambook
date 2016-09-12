@@ -47,14 +47,21 @@ public:
    
     cv::Ptr<cv::ORB> orb_;  // orb detector and computer 
     
-    vector<long>    match_map_, match_curr_;    // feature matching in map and current
+    vector<unsigned long>    match_map_, match_curr_;    // feature matching in map and current
+    SE3 pose_curr_estimated_;  // the estimated pose of current frame 
+    int num_inliers_;        // number of inlier features in icp
+    int num_lost_;           // number of lost times
     
     // parameters 
     int num_of_features_;   // number of features
     double scale_factor_;   // scale in image pyramid
     int level_pyramid_;     // number of pyramid levels
-    float match_ratio_;      // ratio for selecting good matches
-    
+    float match_ratio_;      // ratio for selecting  good matches
+    int max_num_lost_;      // max number of continuous lost times
+    int min_inliers_;       // minimum inliers
+    double key_frame_min_rot;   // minimal rotation of two key-frames
+    double key_frame_min_trans; // minimal translation of two key-frames
+    double  map_point_erase_ratio_; // remove map point ratio
     
 public: // functions 
     VisualOdometry();
@@ -62,12 +69,17 @@ public: // functions
     
     bool addFrame( Frame::Ptr frame );      // add a new frame 
     
-protected:  // inner operation 
+protected:  
+    // inner operation 
     void extractKeyPoints();
     void computeDescriptors(); 
     void addAllKeypointsIntoMap(); 
     void featureMatching();
-    void poseEstimation3D3D(); 
+    void poseEstimationRGBD(); 
+    void addKeyFrame();
+    
+    bool checkEstimatedPose(); 
+    bool checkKeyFrame();
     
 };
 }

@@ -19,7 +19,7 @@ camera.cy: 249.7
 camera.depth_scale: 5000
 
 # VO Parameters
-number_of_features: 1500
+number_of_features: 800
 scale_factor: 1.2
 level_pyramid: 4
 match_ratio: 2.0

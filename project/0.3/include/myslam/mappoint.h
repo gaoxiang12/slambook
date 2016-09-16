@@ -34,7 +34,7 @@ public:
     Vector3d    norm_;      // Normal of viewing direction 
     Mat         descriptor_; // Descriptor for matching 
     
-    // list<Frame*>    observed_frames_;   // frames that can observe this point 
+    list<Frame*>    observed_frames_;   // frames that can observe this point 
     
     int         observed_times_;    // being observed by feature matching algo.
     int         correct_times_;     // being an inliner in pose estimation

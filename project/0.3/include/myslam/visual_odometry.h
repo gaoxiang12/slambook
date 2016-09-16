@@ -42,13 +42,14 @@ public:
     Frame::Ptr  ref_;       // reference frame 
     Frame::Ptr  curr_;      // current frame 
     
-    vector<cv::KeyPoint>    keypoints_curr_;
-    Mat                     descriptors_curr_;
-   
     cv::Ptr<cv::ORB> orb_;  // orb detector and computer 
+    vector<cv::Point3f>     pts_3d_ref_;        // 3d points in reference frame 
+    vector<cv::KeyPoint>    keypoints_curr_;    // keypoints in current frame
+    Mat                     descriptors_curr_;  // descriptor in current frame 
+    Mat                     descriptors_ref_;   // descriptor in reference frame 
+    vector<cv::DMatch>      feature_matches_;
     
-    vector<unsigned long>    match_map_, match_curr_;    // feature matching in map and current
-    SE3 pose_curr_estimated_;  // the estimated pose of current frame 
+    SE3 T_c_r_estimated_;  // the estimated pose of current frame 
     int num_inliers_;        // number of inlier features in icp
     int num_lost_;           // number of lost times
     
@@ -59,9 +60,9 @@ public:
     float match_ratio_;      // ratio for selecting  good matches
     int max_num_lost_;      // max number of continuous lost times
     int min_inliers_;       // minimum inliers
+    
     double key_frame_min_rot;   // minimal rotation of two key-frames
     double key_frame_min_trans; // minimal translation of two key-frames
-    double  map_point_erase_ratio_; // remove map point ratio
     
 public: // functions 
     VisualOdometry();
@@ -73,11 +74,11 @@ protected:
     // inner operation 
     void extractKeyPoints();
     void computeDescriptors(); 
-    void addAllKeypointsIntoMap(); 
     void featureMatching();
-    void poseEstimationRGBD(); 
-    void addKeyFrame();
+    void poseEstimationPnP(); 
+    void setRef3DPoints();
     
+    void addKeyFrame();
     bool checkEstimatedPose(); 
     bool checkKeyFrame();
     

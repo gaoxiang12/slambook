@@ -25,12 +25,13 @@
 
 #include "myslam/config.h"
 #include "myslam/visual_odometry.h"
+#include "myslam/g2o_types.h"
 
 namespace myslam
 {
 
 VisualOdometry::VisualOdometry() :
-    state_ ( INITIALIZING ), ref_ ( nullptr ), curr_ ( nullptr ), map_ ( new Map ), num_lost_ ( 0 ), num_inliers_ ( 0 )
+    state_ ( INITIALIZING ), ref_ ( nullptr ), curr_ ( nullptr ), map_ ( new Map ), num_lost_ ( 0 ), num_inliers_ ( 0 ), matcher_flann_( new cv::flann::LshIndexParams(5,10,2) )
 {
     num_of_features_    = Config::get<int> ( "number_of_features" );
     scale_factor_       = Config::get<double> ( "scale_factor" );
@@ -40,6 +41,7 @@ VisualOdometry::VisualOdometry() :
     min_inliers_        = Config::get<int> ( "min_inliers" );
     key_frame_min_rot   = Config::get<double> ( "keyframe_rotation" );
     key_frame_min_trans = Config::get<double> ( "keyframe_translation" );
+    map_point_erase_ratio_ = Config::get<double> ("map_point_erase_ratio");
     orb_ = cv::ORB::create ( num_of_features_, scale_factor_, level_pyramid_ );
 }
 
@@ -57,10 +59,9 @@ bool VisualOdometry::addFrame ( Frame::Ptr frame )
         state_ = OK;
         curr_ = ref_ = frame;
         map_->insertKeyFrame ( frame );
-        // extract features from first frame 
+        // extract features from first frame and add them into map
         extractKeyPoints();
         computeDescriptors();
-        // compute the 3d position of features in ref frame 
         setRef3DPoints();
         break;
     }
@@ -105,20 +106,23 @@ bool VisualOdometry::addFrame ( Frame::Ptr frame )
 
 void VisualOdometry::extractKeyPoints()
 {
+    boost::timer timer;
     orb_->detect ( curr_->color_, keypoints_curr_ );
+    cout<<"extract keypoints cost time: "<<timer.elapsed()<<endl;
 }
 
 void VisualOdometry::computeDescriptors()
 {
+    boost::timer timer;
     orb_->compute ( curr_->color_, keypoints_curr_, descriptors_curr_ );
+    cout<<"descriptor computation cost time: "<<timer.elapsed()<<endl;
 }
 
 void VisualOdometry::featureMatching()
 {
-    // match desp_ref and desp_curr, use OpenCV's brute force match 
+    boost::timer timer;
     vector<cv::DMatch> matches;
-    cv::BFMatcher matcher ( cv::NORM_HAMMING );
-    matcher.match ( descriptors_ref_, descriptors_curr_, matches );
+    matcher_flann_.match( descriptors_ref_, descriptors_curr_, matches );
     // select the best matches
     float min_dis = std::min_element (
                         matches.begin(), matches.end(),
@@ -136,6 +140,7 @@ void VisualOdometry::featureMatching()
         }
     }
     cout<<"good matches: "<<feature_matches_.size()<<endl;
+    cout<<"match cost time: "<<timer.elapsed()<<endl;
 }
 
 void VisualOdometry::setRef3DPoints()
@@ -156,6 +161,133 @@ void VisualOdometry::setRef3DPoints()
         }
     }
 }
+
+/*
+void VisualOdometry2::poseEstimationRGBD()
+{
+    // construct the 3d 3d observations
+    g2o::BlockSolver_6_3::LinearSolverType* linearSolver = new g2o::LinearSolverDense<g2o::BlockSolver_6_3::PoseMatrixType>();
+    g2o::BlockSolver_6_3* solver_ptr = new g2o::BlockSolver_6_3 ( linearSolver );
+    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( solver_ptr );
+    g2o::SparseOptimizer optimizer;
+    optimizer.setAlgorithm ( solver );
+
+    g2o::VertexSE3Expmap* pose = new g2o::VertexSE3Expmap();
+    pose->setId ( 0 );
+    pose->setEstimate ( g2o::SE3Quat (
+                            curr_->T_c_w_.rotation_matrix(), curr_->T_c_w_.translation()
+                        ) );
+    optimizer.addVertex ( pose );
+
+    // edges
+    int index = 0;
+    vector<EdgeProjectXYZ2UVPoseOnly*> edges_uv;
+    vector<EdgeProjectXYZRGBDPoseOnly*> edges_xyz;
+    vector<bool> inlier ( match_curr_.size(), true );
+
+    for ( int i=0; i<match_curr_.size(); i++ )
+    {
+        cv::KeyPoint kp = keypoints_curr_[ match_curr_[i] ];
+        double d = curr_->findDepth ( kp );
+        /*
+        if ( d<0 )
+        {
+            // 3D -> 2D projection
+            EdgeProjectXYZ2UVPoseOnly* edge = new EdgeProjectXYZ2UVPoseOnly();
+            edge->setId(index++);
+            edge->setVertex(0, pose);
+            edge->camera_ = curr_->camera_;
+            edge->point_ = map_->map_points_[ match_map_[i] ]->pos_;
+            edge->setMeasurement( Vector2d(kp.pt.x, kp.pt.y) );
+            edge->setInformation( Eigen::Matrix2d::Identity() );
+            edge->setRobustKernel( new g2o::RobustKernelHuber );
+            edges_uv.push_back( edge );
+            optimizer.addEdge( edge );
+        }
+        else
+        {
+            // 3D-3D observation
+            EdgeProjectXYZRGBDPoseOnly* edge = new EdgeProjectXYZRGBDPoseOnly();
+            edge->setId ( index++ );
+            edge->setVertex ( 0, pose );
+            edge->point_ = map_->map_points_[ match_map_[i] ]->pos_;
+            edge->setMeasurement (
+                curr_->camera_->pixel2camera (
+                    Vector2d ( kp.pt.x, kp.pt.y ), d
+                )
+            );
+            edge->setInformation ( Eigen::Matrix3d::Identity() *1e5 );
+            edge->setRobustKernel ( new g2o::RobustKernelHuber );
+            edges_xyz.push_back ( edge );
+            optimizer.addEdge ( edge );
+        }
+    }
+
+    cout<<"total edges: 3d-2d"<<edges_uv.size() <<", 3d-3d: "<<edges_xyz.size() <<endl;
+    // start optimization
+    optimizer.setVerbose ( false );
+    optimizer.initializeOptimization();
+    optimizer.optimize ( 10 );
+
+    int num_outliers = 0;
+    // remove the outlier
+    for ( EdgeProjectXYZRGBDPoseOnly* edge: edges_xyz )
+    {
+        edge->computeError();
+        double chi2 = edge->chi2();
+        // cout<<"chi2 = "<<chi2<<endl;
+        if ( chi2 > 20 )
+        {
+            // regard this as an outlier
+            edge->setLevel ( 1 );
+            inlier[edge->id()] = false;
+            num_outliers++;
+        }
+        else
+        {
+            edge->setRobustKernel ( nullptr );
+        }
+    }
+
+    cout<<"inliers: "<<num_inliers_<<endl;
+    pose->setEstimate ( g2o::SE3Quat (
+                            curr_->T_c_w_.rotation_matrix(), curr_->T_c_w_.translation()
+                        ) );
+
+    optimizer.initializeOptimization();
+    optimizer.optimize ( 10 );
+
+    cout<<"pose before: "<<curr_->T_c_w_.matrix() <<endl;
+    cout<<"pose after: "<<pose->estimate() <<endl;
+
+    /*
+    curr_->setPose(
+        SE3( pose->estimate().rotation(), pose->estimate().translation() )
+    );
+    pose_curr_estimated_ = SE3 ( pose->estimate().rotation(), pose->estimate().translation() );
+
+    num_inliers_ = 0;
+    for ( int i=0; i<match_map_.size(); i++ )
+    {
+        if ( inlier[i] == true )
+        {
+            map_->map_points_[ match_map_[i] ]->correct_times_++;
+            num_inliers_++;
+        }
+    }
+    
+    Mat img_show = curr_->color_.clone();
+    for ( unsigned long pt_map_index : match_map_ )
+    {
+        Vector3d p_world = map_->map_points_[pt_map_index]->pos_;
+        Vector2d pixel = curr_->camera_->world2pixel( p_world, curr_->T_c_w_ );
+        cv::circle(img_show, cv::Point2d(pixel(0,0),pixel(1,0)), 5, cv::Scalar(0,250,0),2 );
+    }
+    cv::imshow("matched features", img_show);
+    cv::waitKey(1);
+    cout<<"pose estimation returns"<<endl;
+}
+*/
 
 void VisualOdometry::poseEstimationPnP()
 {
@@ -181,6 +313,44 @@ void VisualOdometry::poseEstimationPnP()
     T_c_r_estimated_ = SE3(
         SO3(rvec.at<double>(0,0), rvec.at<double>(1,0), rvec.at<double>(2,0)), 
         Vector3d( tvec.at<double>(0,0), tvec.at<double>(1,0), tvec.at<double>(2,0))
+    );
+    
+    // using bundle adjustment to optimize the pose 
+    typedef g2o::BlockSolver<g2o::BlockSolverTraits<6,2>> Block;
+    Block::LinearSolverType* linearSolver = new g2o::LinearSolverDense<Block::PoseMatrixType>();
+    Block* solver_ptr = new Block( linearSolver );
+    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( solver_ptr );
+    g2o::SparseOptimizer optimizer;
+    optimizer.setAlgorithm ( solver );
+    
+    g2o::VertexSE3Expmap* pose = new g2o::VertexSE3Expmap();
+    pose->setId ( 0 );
+    pose->setEstimate ( g2o::SE3Quat (
+                            T_c_r_estimated_.rotation_matrix(), T_c_r_estimated_.translation()
+                        ) );
+    optimizer.addVertex ( pose );
+
+    // edges
+    for ( int i=0; i<inliers.rows; i++ )
+    {
+        int index = inliers.at<int>(i,0);
+        // 3D -> 2D projection
+        EdgeProjectXYZ2UVPoseOnly* edge = new EdgeProjectXYZ2UVPoseOnly();
+        edge->setId(i);
+        edge->setVertex(0, pose);
+        edge->camera_ = curr_->camera_.get();
+        edge->point_ = Vector3d( pts3d[index].x, pts3d[index].y, pts3d[index].z );
+        edge->setMeasurement( Vector2d(pts2d[index].x, pts2d[index].y) );
+        edge->setInformation( Eigen::Matrix2d::Identity() );
+        optimizer.addEdge( edge );
+    }
+    
+    optimizer.initializeOptimization();
+    optimizer.optimize(10);
+    
+    T_c_r_estimated_ = SE3 (
+        pose->estimate().rotation(),
+        pose->estimate().translation()
     );
 }
 
@@ -216,6 +386,65 @@ void VisualOdometry::addKeyFrame()
 {
     cout<<"adding a key-frame"<<endl;
     map_->insertKeyFrame ( curr_ );
+    /*
+    cout<<"adding a key-frame"<<endl;
+    // add the curr_ into key-frames
+    map_->insertKeyFrame ( curr_ );
+
+    // remove the far away or hardly seen map points 
+    for ( auto iter = map_->map_points_.begin(); iter!=map_->map_points_.end(); )
+    {
+        MapPoint::Ptr p = iter->second;
+        if ( p->correct_times_==0 || 
+            float(p->correct_times_)/p->observed_times_< map_point_erase_ratio_ )
+        {
+            // erase this point 
+            iter = map_->map_points_.erase(iter);
+            continue;
+        }
+        Vector3d p_cam = curr_->camera_->world2camera(p->pos_, curr_->T_c_w_);
+        if ( p_cam(2,0)<0 || p_cam(2,0)>10 )
+        {
+            iter = map_->map_points_.erase(iter);
+            continue;
+        }
+        /*
+        Vector2d pixel = curr_->camera_->camera2pixel(p_cam);
+        if ( pixel(0,0)<-20 || pixel(1,0)<-20 || pixel(0,0)>curr_->color_.cols+20 || pixel(1,0)>curr_->color_.rows+20 )
+        {
+            iter = map_->map_points_.erase(iter);
+            continue;
+        }
+        iter++;
+    }
+    map_->map_points_.clear();
+    
+    for ( int i=0; i<keypoints_curr_.size(); i++ )
+    {
+        if ( std::find ( match_curr_.begin(), match_curr_.end(), i ) != match_curr_.end() ) // this key-point is matched
+        {
+            continue;
+        }
+        // add this key point into map
+        
+        double d = curr_->findDepth ( keypoints_curr_[i] );
+        if ( d<0 )  continue;
+        MapPoint::Ptr map_point = MapPoint::createMapPoint();
+        map_point->pos_ = curr_->camera_->pixel2world (
+                              Vector2d ( keypoints_curr_[i].pt.x, keypoints_curr_[i].pt.y ),
+                              curr_->T_c_w_, d
+                          );
+        map_point->norm_ = ( map_point->pos_ - curr_->getCamCenter() );
+        map_point->norm_.normalize();
+        map_point->descriptor_ = descriptors_curr_.row ( i ).clone();
+        // map_point->observed_frames_.push_back ( curr_.get() );
+        map_->insertMapPoint ( map_point );
+    }
+    
+    ref_ = curr_;
+    
+    cout<<"total points in map: "<<map_->map_points_.size() <<endl;
+    */
 }
 
 }

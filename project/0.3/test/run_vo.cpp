@@ -6,7 +6,7 @@
 #include <opencv2/viz.hpp> 
 
 #include "myslam/config.h"
-#include "myslam/visual_odometry2.h"
+#include "myslam/visual_odometry.h"
 
 int main ( int argc, char** argv )
 {
@@ -17,7 +17,7 @@ int main ( int argc, char** argv )
     }
 
     myslam::Config::setParameterFile ( argv[1] );
-    myslam::VisualOdometry2::Ptr vo ( new myslam::VisualOdometry2 );
+    myslam::VisualOdometry::Ptr vo ( new myslam::VisualOdometry );
 
     string dataset_dir = myslam::Config::get<string> ( "dataset_dir" );
     cout<<"dataset: "<<dataset_dir<<endl;
@@ -74,7 +74,7 @@ int main ( int argc, char** argv )
         vo->addFrame ( pFrame );
         cout<<"VO costs time: "<<timer.elapsed()<<endl;
         
-        if ( vo->state_ == myslam::VisualOdometry2::LOST )
+        if ( vo->state_ == myslam::VisualOdometry::LOST )
             break;
         SE3 Tcw = pFrame->T_c_w_.inverse();
         
@@ -89,6 +89,8 @@ int main ( int argc, char** argv )
                 Tcw.translation()(0,0), Tcw.translation()(1,0), Tcw.translation()(2,0)
             )
         );
+        cv::imshow("image", color );
+        cv::waitKey(1);
         vis.setWidgetPose( "Camera", M);
         vis.spinOnce(1, false);
     }

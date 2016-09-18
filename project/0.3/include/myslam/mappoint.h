@@ -37,7 +37,7 @@ public:
     list<Frame*>    observed_frames_;   // frames that can observe this point 
     
     int         observed_times_;    // being observed by feature matching algo.
-    int         correct_times_;     // being an inliner in pose estimation
+    int         matched_times_;     // being an inliner in pose estimation
     
     MapPoint();
     MapPoint( long id, Vector3d position, Vector3d norm );

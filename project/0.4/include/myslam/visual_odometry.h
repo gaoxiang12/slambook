@@ -47,12 +47,11 @@ public:
     vector<cv::KeyPoint>    keypoints_curr_;    // keypoints in current frame
     Mat                     descriptors_curr_;  // descriptor in current frame 
     
-    vector<cv::Point3f>     mappt_cand;         // candidate map points  
-    
-    vector<cv::DMatch>      feature_matches_;   // feature matches 
     cv::FlannBasedMatcher   matcher_flann_;     // flann matcher
+    vector<MapPoint::Ptr>   match_3dpts_;
+    vector<int>             match_2dkp_index_;
    
-    SE3 T_c_r_estimated_;    // the estimated pose of current frame 
+    SE3 T_c_w_estimated_;    // the estimated pose of current frame 
     int num_inliers_;        // number of inlier features in icp
     int num_lost_;           // number of lost times
     
@@ -79,8 +78,10 @@ protected:
     void computeDescriptors(); 
     void featureMatching();
     void poseEstimationPnP(); 
+    void optimizeMap();
     
     void addKeyFrame();
+    void addMapPoints();
     bool checkEstimatedPose(); 
     bool checkKeyFrame();
     

@@ -44,10 +44,11 @@ public:
     Frame::Ptr  curr_;      // current frame 
     
     cv::Ptr<cv::ORB> orb_;  // orb detector and computer 
-    vector<cv::Point3f>     pts_3d_ref_;        // 3d points in reference frame 
     vector<cv::KeyPoint>    keypoints_curr_;    // keypoints in current frame
     Mat                     descriptors_curr_;  // descriptor in current frame 
-    Mat                     descriptors_ref_;   // descriptor in reference frame 
+    
+    vector<cv::Point3f>     mappt_cand;         // candidate map points  
+    
     vector<cv::DMatch>      feature_matches_;   // feature matches 
     cv::FlannBasedMatcher   matcher_flann_;     // flann matcher
    
@@ -77,7 +78,6 @@ protected:
     void extractKeyPoints();
     void computeDescriptors(); 
     void featureMatching();
-    void setRef3DPoints();
     void poseEstimationPnP(); 
     
     void addKeyFrame();

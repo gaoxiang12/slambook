@@ -62,7 +62,6 @@ bool VisualOdometry::addFrame ( Frame::Ptr frame )
         // extract features from first frame and add them into map
         extractKeyPoints();
         computeDescriptors();
-        setRef3DPoints();
         break;
     }
     case OK:
@@ -76,7 +75,6 @@ bool VisualOdometry::addFrame ( Frame::Ptr frame )
         {
             curr_->T_c_w_ = T_c_r_estimated_ * ref_->T_c_w_;  // T_c_w = T_c_r*T_r_w 
             ref_ = curr_;
-            setRef3DPoints();
             num_lost_ = 0;
             if ( checkKeyFrame() == true ) // is a key-frame
             {
@@ -146,20 +144,6 @@ void VisualOdometry::featureMatching()
 void VisualOdometry::setRef3DPoints()
 {
     // select the features with depth measurements 
-    pts_3d_ref_.clear();
-    descriptors_ref_ = Mat();
-    for ( size_t i=0; i<keypoints_curr_.size(); i++ )
-    {
-        double d = ref_->findDepth(keypoints_curr_[i]);               
-        if ( d > 0)
-        {
-            Vector3d p_cam = ref_->camera_->pixel2camera(
-                Vector2d(keypoints_curr_[i].pt.x, keypoints_curr_[i].pt.y), d
-            );
-            pts_3d_ref_.push_back( cv::Point3f( p_cam(0,0), p_cam(1,0), p_cam(2,0) ));
-            descriptors_ref_.push_back(descriptors_curr_.row(i));
-        }
-    }
 }
 
 void VisualOdometry::poseEstimationPnP()
@@ -257,7 +241,23 @@ bool VisualOdometry::checkKeyFrame()
 
 void VisualOdometry::addKeyFrame()
 {
-    cout<<"adding a key-frame"<<endl;
+    // add the curr points into map 
+    if ( map_->keyframes_.empty() )
+    {
+        // first key-frame, add all 3d points into map 
+        for ( size_t i=0; i<keypoints_curr_.size(); i++ )
+        {
+            double d = ref_->findDepth(keypoints_curr_[i]);               
+            if ( d > 0)
+            {
+                Vector3d p_cam = ref_->camera_->pixel2camera(
+                    Vector2d(keypoints_curr_[i].pt.x, keypoints_curr_[i].pt.y), d
+                );
+                pts_3d_ref_.push_back( cv::Point3f( p_cam(0,0), p_cam(1,0), p_cam(2,0) ));
+                descriptors_ref_.push_back(descriptors_curr_.row(i));
+            }
+        }
+    }
     map_->insertKeyFrame ( curr_ );
 }
 

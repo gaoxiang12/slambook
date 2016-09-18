@@ -67,6 +67,7 @@ bool VisualOdometry::addFrame ( Frame::Ptr frame )
     case OK:
     {
         curr_ = frame;
+        curr_->T_c_w_ = ref_->T_c_w_;
         extractKeyPoints();
         computeDescriptors();
         featureMatching();
@@ -327,15 +328,20 @@ void VisualOdometry::optimizeMap()
         if ( match_ratio < map_point_erase_ratio_ )
         {
             iter = map_->map_points_.erase(iter);
+            continue;
         }
-        else 
+        
+        double angle = getViewAngle( curr_, iter->second );
+        if ( angle > M_PI/6. )
         {
-            if ( iter->second->good_ == false )
-            {
-                // TODO try triangulate this map point 
-            }
-            iter++;
+            iter = map_->map_points_.erase(iter);
+            continue;
         }
+        if ( iter->second->good_ == false )
+        {
+            // TODO try triangulate this map point 
+        }
+        iter++;
     }
     
     if ( match_2dkp_index_.size()<100 )
@@ -348,6 +354,13 @@ void VisualOdometry::optimizeMap()
     else 
         map_point_erase_ratio_ = 0.1;
     cout<<"map points: "<<map_->map_points_.size()<<endl;
+}
+
+double VisualOdometry::getViewAngle ( Frame::Ptr frame, MapPoint::Ptr point )
+{
+    Vector3d n = point->pos_ - frame->getCamCenter();
+    n.normalize();
+    return acos( n.transpose()*point->norm_ );
 }
 
 

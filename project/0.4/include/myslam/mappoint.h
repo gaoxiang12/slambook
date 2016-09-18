@@ -40,7 +40,7 @@ public:
     list<Frame*>    observed_frames_;   // key-frames that can observe this point 
     
     int         matched_times_;     // being an inliner in pose estimation
-    int         visible_times_;
+    int         visible_times_;     // being visible in current frame 
     
     MapPoint();
     MapPoint( 

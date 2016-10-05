@@ -33,7 +33,7 @@ public:
         double data[7];
         for ( int i=0; i<7; i++ )
             is>>data[i];
-        setEstimate ( Sophus::SE3 (
+        setEstimate ( SE3 (
                 Eigen::Quaterniond ( data[6],data[3], data[4], data[5] ),
                 Eigen::Vector3d ( data[0], data[1], data[2] )
         ));
@@ -41,6 +41,9 @@ public:
 
     bool write ( ostream& os ) const
     {
+        Eigen::Quaterniond q = _estimate.unit_quaternion();
+        os<<q.coeffs()[0]<<" "<<q.coeffs()[1]<<" "<<q.coeffs()[2]<<" "<<q.coeffs()[3]<<" ";
+        os<<_estimate.translation().transpose()<<endl;
         return true;
     }
     virtual void setToOriginImpl()
@@ -84,6 +87,19 @@ public:
     }
     bool write ( ostream& os ) const
     {
+        VertexSE3LieAlgebra* v1 = static_cast<VertexSE3LieAlgebra*> (_vertices[0]);
+        VertexSE3LieAlgebra* v2 = static_cast<VertexSE3LieAlgebra*> (_vertices[1]);
+        os<<v1->id()<<" "<<v2->id()<<" ";
+        SE3 m = _measurement;
+        Eigen::Quaterniond q = m.unit_quaternion();
+        os<<q.coeffs()[0]<<" "<<q.coeffs()[1]<<" "<<q.coeffs()[2]<<" "<<q.coeffs()[3]<<" ";
+        os<<m.translation().transpose()<<endl;
+        // information matrix 
+        for ( int i=0; i<information().rows(); i++ )
+            for ( int j=i; j<information().cols(); j++ )
+            {
+                os << information() ( i,j );
+            }
         return true;
     }
 
@@ -128,6 +144,8 @@ int main ( int argc, char** argv )
 
     int vertexCnt = 0, edgeCnt = 0; // 顶点和边的数量
     
+    vector<VertexSE3LieAlgebra*> vectices;
+    vector<EdgeSE3LieAlgebra*> edges;
     while ( !fin.eof() )
     {
         string name;
@@ -142,6 +160,7 @@ int main ( int argc, char** argv )
             v->read(fin);
             optimizer.addVertex(v);
             vertexCnt++;
+            vectices.push_back(v);
             if ( index==0 )
                 v->setFixed(true);
         }
@@ -156,6 +175,7 @@ int main ( int argc, char** argv )
             e->setVertex( 1, optimizer.vertices()[idx2] );
             e->read(fin);
             optimizer.addEdge(e);
+            edges.push_back(e);
         }
         if ( !fin.good() ) break;
     }
@@ -168,7 +188,20 @@ int main ( int argc, char** argv )
     cout<<"calling optimizing ..."<<endl;
     optimizer.optimize(100);
 
-    // cout<<"saving optimization results ..."<<endl;
-    // optimizer.save("result.g2o");
+    cout<<"saving optimization results ..."<<endl;
+    // because we use custom defined vertices and edges and haven't register them with g2o 
+    // so we save the file by c++ in g2o file format 
+    ofstream fout("result_lie.g2o");
+    for ( VertexSE3LieAlgebra* v:vectices )
+    {
+        fout<<"VERTEX_SE3:QUAT ";
+        v->write(fout);
+    }
+    for ( EdgeSE3LieAlgebra* e:edges )
+    {
+        fout<<"EDGE_SE3:QUAT ";
+        e->write(fout);
+    }
+    fout.close();
     return 0;
 }

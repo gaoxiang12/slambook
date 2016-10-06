@@ -92,7 +92,7 @@ public:
         Eigen::Quaterniond q ( data[6], data[3], data[4], data[5] );
         q.normalize();
         setMeasurement (
-            Sophus::SE3 ( q, Eigen::Vector3d ( data[0], data[1], data[2] ) ) // note the difinition of EdgeSE3 is different with us 
+            Sophus::SE3 ( q, Eigen::Vector3d ( data[0], data[1], data[2] ) ) 
         );
         for ( int i=0; i<information().rows() && is.good(); i++ )
             for ( int j=i; j<information().cols() && is.good(); j++ )
@@ -159,10 +159,10 @@ int main ( int argc, char** argv )
     typedef g2o::BlockSolver<g2o::BlockSolverTraits<6,6>> Block;  // BlockSolver为6x6
     Block::LinearSolverType* linearSolver = new g2o::LinearSolverCholmod<Block::PoseMatrixType>(); // 线性方程求解器
     Block* solver_ptr = new Block ( linearSolver );     // 矩阵块求解器
-    // g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( solver_ptr );
+    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( solver_ptr );
     // 试试G-N或Dogleg？
     // g2o::OptimizationAlgorithmDogleg* solver = new g2o::OptimizationAlgorithmDogleg( solver_ptr );
-    g2o::OptimizationAlgorithmGaussNewton* solver = new g2o::OptimizationAlgorithmGaussNewton ( solver_ptr );
+    // g2o::OptimizationAlgorithmGaussNewton* solver = new g2o::OptimizationAlgorithmGaussNewton ( solver_ptr );
     
     g2o::SparseOptimizer optimizer;     // 图模型
     optimizer.setAlgorithm ( solver );  // 设置求解器

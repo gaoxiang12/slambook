@@ -10,6 +10,7 @@
 #include <gtsam/slam/BetweenFactor.h>
 #include <gtsam/slam/PriorFactor.h>
 #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
+#include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
 
 using namespace std;
 using Sophus::SE3;
@@ -69,7 +70,6 @@ int main ( int argc, char** argv )
                     fin>>mij;
                     m ( i,j ) = mij;
                     m ( j,i ) = mij;
-
                 }
             // change the blocks because gtsam def is different with g2o
             gtsam::Matrix mgtsam = gtsam::I_6x6;
@@ -102,7 +102,13 @@ int main ( int argc, char** argv )
     gtsam::GaussNewtonParams params;
     params.setVerbosity ( "TERMINATION" );
     gtsam::GaussNewtonOptimizer optimizer ( graphWithPrior, *initial, params );
-    gtsam::Values result = optimizer.optimize();
+    
+    gtsam::LevenbergMarquardtParams params_lm;
+    params_lm.setVerbosity("TERMINATION");
+    gtsam::LevenbergMarquardtOptimizer optimizer_LM( graphWithPrior, *initial, params_lm );
+    
+    // gtsam::Values result = optimizer.optimize();
+    gtsam::Values result = optimizer_LM.optimize();
     cout<<"Optimization complete"<<endl;
     cout<<"initial error: "<<graph->error ( *initial ) <<endl;
     cout<<"final error: "<<graph->error ( result ) <<endl;
@@ -126,12 +132,31 @@ int main ( int argc, char** argv )
         if ( f )
         {
             gtsam::SharedNoiseModel model = f->noiseModel();
-            gtsam::noiseModel::Gaussian gaussianModel = dynamic_pointer_cast<gtsam::noiseModel::Gaussian>( model );
+            gtsam::noiseModel::Gaussian::shared_ptr gaussianModel = dynamic_pointer_cast<gtsam::noiseModel::Gaussian>( model );
             if ( gaussianModel )
             {
                 // write the edge information 
+                gtsam::Matrix info = gaussianModel->R().transpose() * gaussianModel->R();
+                gtsam::Pose3 pose = f->measured();
+                gtsam::Point3 p = pose.translation();
+                gtsam::Quaternion q = pose.rotation().toQuaternion();
+                fout<<"EDGE_SE3:QUAT "<<f->key1()<<" "<<f->key2()<<" "
+                    <<p.x() <<" "<<p.y() <<" "<<p.z() <<" "
+                    <<q.x()<<" "<<q.y()<<" "<<q.z()<<" "<<q.w()<<" ";
+                gtsam::Matrix infoG2o = gtsam::I_6x6;
+                infoG2o.block(0,0,3,3) = info.block(3,3,3,3); // cov translation
+                infoG2o.block(3,3,3,3) = info.block(0,0,3,3); // cov rotation
+                infoG2o.block(0,3,3,3) = info.block(0,3,3,3); // off diagonal
+                infoG2o.block(3,0,3,3) = info.block(3,0,3,3); // off diagonal
+                for ( int i=0; i<6; i++ )
+                    for ( int j=i; j<6; j++ )
+                    {
+                        fout<<infoG2o(i,j)<<" ";
+                    }
+                fout<<endl;
             }
-            ;
         }
     }
+    fout.close();
+    cout<<"done."<<endl;
 }

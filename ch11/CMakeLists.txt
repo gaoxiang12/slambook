@@ -21,8 +21,10 @@ find_package( Cholmod REQUIRED )
 include_directories( ${CHOLMOD_INCLUDE_DIR} )
 
 # gtsam 
+find_package( GTSAMCMakeTools )
 find_package( GTSAM REQUIRED )
-include_directories( ${GTSAM_INCLUDE_DIRS} )
+include_directories( ${GTSAM_INCLUDE_DIR} )
+
 
 # Ceres 
 find_package( Ceres REQUIRED )
@@ -38,4 +40,9 @@ target_link_libraries( pose_graph_g2o_lie
     g2o_core g2o_stuff 
     ${CHOLMOD_LIBRARIES}
     ${Sophus_LIBRARIES}
+)
+
+add_executable( pose_graph_gtsam pose_graph_gtsam.cpp )
+target_link_libraries( pose_graph_gtsam
+    ${CHOLMOD_LIBRARIES} gtsam
 )

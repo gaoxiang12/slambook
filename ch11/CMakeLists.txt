@@ -20,6 +20,10 @@ include_directories( ${G2O_INCLUDE_DIRS} )
 find_package( Cholmod REQUIRED )
 include_directories( ${CHOLMOD_INCLUDE_DIR} )
 
+# gtsam 
+find_package( GTSAM REQUIRED )
+include_directories( ${GTSAM_INCLUDE_DIRS} )
+
 # Ceres 
 find_package( Ceres REQUIRED )
 include_directories( ${CERES_INCLUDE_DIRS} )

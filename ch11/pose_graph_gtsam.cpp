@@ -93,8 +93,11 @@ int main ( int argc, char** argv )
     for ( const gtsam::Values::ConstKeyValuePair& key_value: *initial )
     {
         cout<<"Adding prior to g2o file "<<endl;
-        firstKey = key_value.key;
-        graphWithPrior.add ( gtsam::PriorFactor<gtsam::Pose3> ( firstKey, gtsam::Pose3(), priorModel ) );
+        // firstKey = key_value.key;
+        graphWithPrior.add ( gtsam::PriorFactor<gtsam::Pose3> ( 
+            key_value.key, key_value.value.cast<gtsam::Pose3>(), priorModel ) 
+        );
+        // key_value.value.cast<gtsam::Pose3>();
         break;
     }
 
@@ -104,7 +107,9 @@ int main ( int argc, char** argv )
     gtsam::GaussNewtonOptimizer optimizer ( graphWithPrior, *initial, params );
     
     gtsam::LevenbergMarquardtParams params_lm;
-    params_lm.setVerbosity("TERMINATION");
+    params_lm.setVerbosity("ERROR");
+    params_lm.setMaxIterations(20);
+    params_lm.setLinearSolverType("MULTIFRONTAL_QR");
     gtsam::LevenbergMarquardtOptimizer optimizer_LM( graphWithPrior, *initial, params_lm );
     
     // gtsam::Values result = optimizer.optimize();

@@ -1,1 +1,0 @@
-/usr/bin/c++  -fPIC  -std=c++11  -shared -Wl,-soname,libParseCmd.so -o libParseCmd.so CMakeFiles/ParseCmd.dir/common/flags/command_args.cpp.o 

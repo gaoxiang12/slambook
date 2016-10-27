@@ -1,3 +1,0 @@
-/home/yee/Code/CppLearning/Ceres_train/ceresBundle_custom/CMakeFiles/ParseCmd.dir
-/home/yee/Code/CppLearning/Ceres_train/ceresBundle_custom/CMakeFiles/Ceres_customBundle.dir
-/home/yee/Code/CppLearning/Ceres_train/ceresBundle_custom/CMakeFiles/BALProblem.dir

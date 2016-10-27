@@ -1,1 +1,0 @@
-/usr/bin/c++  -fPIC  -std=c++11  -shared -Wl,-soname,libBALProblem.so -o libBALProblem.so CMakeFiles/BALProblem.dir/common/BALProblem.cpp.o 

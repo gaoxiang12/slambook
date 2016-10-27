@@ -11,12 +11,9 @@ using namespace ceres;
 
 void SetLinearSolver(ceres::Solver::Options* options, const BundleParams& params)
 {
-    //CHECK(ceres::StringToLinearSolverType(params.linear_solver, &options->linear_solver_type));
-    options->linear_solver_type = params.linear_solver;
-    options->sparse_linear_algebra_library_type = params.sparse_linear_algebra_library;
-    options->dense_linear_algebra_library_type = params.dense_linear_algebra_library;
-    //CHECK(ceres::StringToSparseLinearAlgebraLibraryType(params.sparse_linear_algebra_library, &options->sparse_linear_algebra_library_type));
-    //CHECK(ceres::StringToDenseLinearAlgebraLibraryType(params.dense_linear_algebra_library, &options->dense_linear_algebra_library_type));
+    CHECK(ceres::StringToLinearSolverType(params.linear_solver, &options->linear_solver_type));
+    CHECK(ceres::StringToSparseLinearAlgebraLibraryType(params.sparse_linear_algebra_library, &options->sparse_linear_algebra_library_type));
+    CHECK(ceres::StringToDenseLinearAlgebraLibraryType(params.dense_linear_algebra_library, &options->dense_linear_algebra_library_type));
     options->num_linear_solver_threads = params.num_threads;
 
 }
@@ -57,8 +54,8 @@ void SetMinimizerOptions(Solver::Options* options, const BundleParams& params){
     // options->eta = params.eta;
     // options->max_solver_time_in_seconds = params.max_solver_time;
     
-    options->trust_region_strategy_type = params.trust_region_strategy;
-   
+    CHECK(StringToTrustRegionStrategyType(params.trust_region_strategy,
+                                        &options->trust_region_strategy_type));
     
 }
 

@@ -192,7 +192,7 @@ int main ( int argc, char** argv )
         {
             // 对第一帧提取FAST特征点
             vector<cv::KeyPoint> keypoints;
-            cv::Ptr<cv::FastFeatureDetector> detector = cv::FastFeatureDetector::create();
+            cv::Ptr<cv::FastFeatureDetector> detector;
             detector->detect ( color, keypoints );
             for ( auto kp:keypoints )
             {

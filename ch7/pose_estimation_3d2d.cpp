@@ -36,7 +36,7 @@ int main ( int argc, char** argv )
 {
     if ( argc != 5 )
     {
-        cout<<"usage: feature_extraction img1 img2 depth1 depth2"<<endl;
+        cout<<"usage: pose_estimation_3d2d img1 img2 depth1 depth2"<<endl;
         return 1;
     }
     //-- 读取图像
@@ -67,7 +67,7 @@ int main ( int argc, char** argv )
     cout<<"3d-2d pairs: "<<pts_3d.size() <<endl;
 
     Mat r, t;
-    solvePnP ( pts_3d, pts_2d, K, Mat(), r, t, false, cv::SOLVEPNP_EPNP ); // 调用OpenCV 的 PnP 求解，可选择EPNP，DLS等方法
+    solvePnP ( pts_3d, pts_2d, K, Mat(), r, t, false ); // 调用OpenCV 的 PnP 求解，可选择EPNP，DLS等方法
     Mat R;
     cv::Rodrigues ( r, R ); // r为旋转向量形式，用Rodrigues公式转换为矩阵
 
@@ -87,20 +87,21 @@ void find_feature_matches ( const Mat& img_1, const Mat& img_2,
 {
     //-- 初始化
     Mat descriptors_1, descriptors_2;
-    Ptr<ORB> orb = ORB::create ( 500, 1.2f, 8, 31, 0, 2, ORB::HARRIS_SCORE,31,20 );
-
+    Ptr<FeatureDetector> detector = FeatureDetector::create("ORB");
+    Ptr<DescriptorExtractor> descriptor = DescriptorExtractor::create("ORB");
+    Ptr<DescriptorMatcher> matcher  = DescriptorMatcher::create("BruteForce-Hamming");
     //-- 第一步:检测 Oriented FAST 角点位置
-    orb->detect ( img_1,keypoints_1 );
-    orb->detect ( img_2,keypoints_2 );
+    detector->detect ( img_1,keypoints_1 );
+    detector->detect ( img_2,keypoints_2 );
 
     //-- 第二步:根据角点位置计算 BRIEF 描述子
-    orb->compute ( img_1, keypoints_1, descriptors_1 );
-    orb->compute ( img_2, keypoints_2, descriptors_2 );
+    descriptor->compute ( img_1, keypoints_1, descriptors_1 );
+    descriptor->compute ( img_2, keypoints_2, descriptors_2 );
 
     //-- 第三步:对两幅图像中的BRIEF描述子进行匹配，使用 Hamming 距离
     vector<DMatch> match;
-    BFMatcher matcher ( NORM_HAMMING );
-    matcher.match ( descriptors_1, descriptors_2, match );
+   // BFMatcher matcher ( NORM_HAMMING );
+    matcher->match ( descriptors_1, descriptors_2, match );
 
     //-- 第四步:匹配点对筛选
     double min_dist=10000, max_dist=0;

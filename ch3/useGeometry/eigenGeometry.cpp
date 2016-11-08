@@ -12,7 +12,8 @@ int main ( int argc, char** argv )
     // 3D 旋转矩阵直接使用 Matrix3d 或 Matrix3f
     Eigen::Matrix3d rotation_matrix = Eigen::Matrix3d::Identity();
     // 旋转向量使用 AngleAxis, 它底层不直接是Matrix，但运算可以当作矩阵（因为重载了运算符）
-    Eigen::AngleAxisd rotation_vector ( M_PI/2, Eigen::Vector3d ( 0,0,1 ) );     //沿Z轴旋转90度
+    Eigen::AngleAxisd rotation_vector ( M_PI/4, Eigen::Vector3d ( 0,0,1 ) );     //沿Z轴旋转90度
+    cout .precision(3);
     cout<<"rotation matrix =\n"<<rotation_vector.matrix() <<endl;                //用matrix()转换成矩阵
     // 也可以直接赋值
     rotation_matrix = rotation_vector.toRotationMatrix();
@@ -31,7 +32,7 @@ int main ( int argc, char** argv )
     // 欧氏变换矩阵使用 Eigen::Isometry
     Eigen::Isometry3d T=Eigen::Isometry3d::Identity();                // 虽然称为3d，实质上是4＊4的矩阵
     T.rotate ( rotation_vector );                                     // 按照rotation_vector进行旋转
-    T.pretranslate ( Eigen::Vector3d ( 1,0,0 ) );                     // 沿X轴平移1，相当于把平移向量设成(1,0,0)
+    T.pretranslate ( Eigen::Vector3d ( 1,3,4 ) );                     // 沿X轴平移1，相当于把平移向量设成(1,0,0)
     cout << "Transform matrix = \n" << T.matrix() <<endl;
 
     // 用变换矩阵进行坐标变换

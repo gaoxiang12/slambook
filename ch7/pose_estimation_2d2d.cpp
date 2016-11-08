@@ -3,6 +3,7 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
+#include "extra.h"
 using namespace std; 
 using namespace cv;
 
@@ -23,7 +24,7 @@ int main( int argc, char** argv )
 {
     if ( argc != 3 )
     {
-        cout<<"usage: feature_extraction img1 img2"<<endl;
+        cout<<"usage: pose_estimation_2d2d img1 img2"<<endl;
         return 1;
     }
     //-- 读取图像
@@ -68,20 +69,21 @@ void find_feature_matches( const Mat& img_1, const Mat& img_2,
 {
     //-- 初始化
     Mat descriptors_1, descriptors_2;
-    Ptr<ORB> orb = ORB::create ( 500, 1.2f, 8, 31, 0, 2, ORB::HARRIS_SCORE,31,20 );
-
+    Ptr<FeatureDetector> detector = FeatureDetector::create("ORB");
+    Ptr<DescriptorExtractor> descriptor = DescriptorExtractor::create("ORB");
+    Ptr<DescriptorMatcher> matcher  = DescriptorMatcher::create("BruteForce-Hamming");
     //-- 第一步:检测 Oriented FAST 角点位置
-    orb->detect ( img_1,keypoints_1 );
-    orb->detect ( img_2,keypoints_2 );
+    detector->detect ( img_1,keypoints_1 );
+    detector->detect ( img_2,keypoints_2 );
 
     //-- 第二步:根据角点位置计算 BRIEF 描述子
-    orb->compute ( img_1, keypoints_1, descriptors_1 );
-    orb->compute ( img_2, keypoints_2, descriptors_2 );
+    descriptor->compute ( img_1, keypoints_1, descriptors_1 );
+    descriptor->compute ( img_2, keypoints_2, descriptors_2 );
 
     //-- 第三步:对两幅图像中的BRIEF描述子进行匹配，使用 Hamming 距离
     vector<DMatch> match;
-    BFMatcher matcher ( NORM_HAMMING );
-    matcher.match ( descriptors_1, descriptors_2, match );
+    //BFMatcher matcher ( NORM_HAMMING );
+    matcher->match ( descriptors_1, descriptors_2, match );
 
     //-- 第四步:匹配点对筛选
     double min_dist=10000, max_dist=0;
@@ -106,6 +108,17 @@ void find_feature_matches( const Mat& img_1, const Mat& img_2,
         }
     }
 }
+
+
+Point2d pixel2cam ( const Point2d& p, const Mat& K )
+{
+    return Point2d
+    (
+        ( p.x - K.at<double>(0,2) ) / K.at<double>(0,0), 
+        ( p.y - K.at<double>(1,2) ) / K.at<double>(1,1) 
+    );
+}
+
 
 void pose_estimation_2d2d ( std::vector<KeyPoint> keypoints_1,
                             std::vector<KeyPoint> keypoints_2,
@@ -134,12 +147,12 @@ void pose_estimation_2d2d ( std::vector<KeyPoint> keypoints_1,
     Point2d principal_point ( 325.1, 249.7 );				//相机主点, TUM dataset标定值
     int focal_length = 521;						//相机焦距, TUM dataset标定值
     Mat essential_matrix;
-    essential_matrix = findEssentialMat ( points1, points2, focal_length, principal_point, RANSAC );
+    essential_matrix = findEssentialMat ( points1, points2, focal_length, principal_point );
     cout<<"essential_matrix is "<<endl<< essential_matrix<<endl;
 
     //-- 计算单应矩阵
     Mat homography_matrix;
-    homography_matrix = findHomography ( points1, points2, RANSAC, 3, noArray(), 2000, 0.99 );
+    homography_matrix = findHomography ( points1, points2, RANSAC, 3 );
     cout<<"homography_matrix is "<<endl<<homography_matrix<<endl;
 
     //-- 从本质矩阵中恢复旋转和平移信息.
@@ -147,13 +160,3 @@ void pose_estimation_2d2d ( std::vector<KeyPoint> keypoints_1,
     cout<<"R is "<<endl<<R<<endl;
     cout<<"t is "<<endl<<t<<endl;
 }
-
-Point2d pixel2cam ( const Point2d& p, const Mat& K )
-{
-    return Point2d
-    (
-        ( p.x - K.at<double>(0,2) ) / K.at<double>(0,0), 
-        ( p.y - K.at<double>(1,2) ) / K.at<double>(1,1) 
-    );
-}
-

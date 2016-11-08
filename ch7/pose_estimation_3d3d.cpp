@@ -96,7 +96,7 @@ int main ( int argc, char** argv )
 {
     if ( argc != 5 )
     {
-        cout<<"usage: feature_extraction img1 img2 depth1 depth2"<<endl;
+        cout<<"usage: pose_estimation_3d3d img1 img2 depth1 depth2"<<endl;
         return 1;
     }
     //-- 读取图像
@@ -162,20 +162,21 @@ void find_feature_matches ( const Mat& img_1, const Mat& img_2,
 {
     //-- 初始化
     Mat descriptors_1, descriptors_2;
-    Ptr<ORB> orb = ORB::create ( 500, 1.2f, 8, 31, 0, 2, ORB::HARRIS_SCORE,31,20 );
-
+    Ptr<FeatureDetector> detector = FeatureDetector::create("ORB");
+    Ptr<DescriptorExtractor> descriptor = DescriptorExtractor::create("ORB");
+    Ptr<DescriptorMatcher> matcher  = DescriptorMatcher::create("BruteForce-Hamming");
     //-- 第一步:检测 Oriented FAST 角点位置
-    orb->detect ( img_1,keypoints_1 );
-    orb->detect ( img_2,keypoints_2 );
+    detector->detect ( img_1,keypoints_1 );
+    detector->detect ( img_2,keypoints_2 );
 
     //-- 第二步:根据角点位置计算 BRIEF 描述子
-    orb->compute ( img_1, keypoints_1, descriptors_1 );
-    orb->compute ( img_2, keypoints_2, descriptors_2 );
+    descriptor->compute ( img_1, keypoints_1, descriptors_1 );
+    descriptor->compute ( img_2, keypoints_2, descriptors_2 );
 
     //-- 第三步:对两幅图像中的BRIEF描述子进行匹配，使用 Hamming 距离
     vector<DMatch> match;
-    BFMatcher matcher ( NORM_HAMMING );
-    matcher.match ( descriptors_1, descriptors_2, match );
+   // BFMatcher matcher ( NORM_HAMMING );
+    matcher->match ( descriptors_1, descriptors_2, match );
 
     //-- 第四步:匹配点对筛选
     double min_dist=10000, max_dist=0;
@@ -223,8 +224,8 @@ void pose_estimation_3d3d (
         p1 += pts1[i];
         p2 += pts2[i];
     }
-    p1 /= N;
-    p2 /= N;
+    p1 = Point3f( Vec3f(p1) /  N);
+    p2 = Point3f( Vec3f(p2) / N);
     vector<Point3f>     q1 ( N ), q2 ( N ); // remove the center
     for ( int i=0; i<N; i++ )
     {

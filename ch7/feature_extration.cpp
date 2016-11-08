@@ -17,18 +17,38 @@ int main ( int argc, char** argv )
     Mat img_1 = imread ( argv[1], CV_LOAD_IMAGE_COLOR );
     Mat img_2 = imread ( argv[2], CV_LOAD_IMAGE_COLOR );
 
+    static const char* ddms[] =
+    {
+        "ORBX_BF", "ORB", "ORB", "BruteForce-Hamming",
+        //"ORB_BF", "ORB", "ORB", "BruteForce-Hamming",
+        //"ORB3_BF", "ORB", "ORB", "BruteForce-Hamming(2)",
+        //"ORB4_BF", "ORB", "ORB", "BruteForce-Hamming(2)",
+        //"ORB_LSH", "ORB", "ORB", "LSH"
+        //"SURF_BF", "SURF", "SURF", "BruteForce",
+        0
+    };
+    int i=0;
+    const char* name = ddms[i*4];
+    const char* detector_name = ddms[i*4+1];
+    const char* descriptor_name = ddms[i*4+2];
+    const char* matcher_name = ddms[i*4+3];
+    
+
     //-- 初始化
     std::vector<KeyPoint> keypoints_1, keypoints_2;
     Mat descriptors_1, descriptors_2;
-    Ptr<ORB> orb = ORB::create ( 500, 1.2f, 8, 31, 0, 2, ORB::HARRIS_SCORE,31,20 );
+    Ptr<FeatureDetector> detector = FeatureDetector::create(detector_name);
+    Ptr<DescriptorExtractor> descriptor = DescriptorExtractor::create(descriptor_name);
+    Ptr<DescriptorMatcher> matcher  = DescriptorMatcher::create(matcher_name);
+    //Ptr<ORB> orb = ORB::create ( 500, 1.2f, 8, 31, 0, 2, ORB::HARRIS_SCORE,31,20 );
 
     //-- 第一步:检测 Oriented FAST 角点位置
-    orb->detect ( img_1,keypoints_1 );
-    orb->detect ( img_2,keypoints_2 );
+    detector->detect ( img_1,keypoints_1 );
+    detector->detect ( img_2,keypoints_2 );
 
     //-- 第二步:根据角点位置计算 BRIEF 描述子
-    orb->compute ( img_1, keypoints_1, descriptors_1 );
-    orb->compute ( img_2, keypoints_2, descriptors_2 );
+    descriptor->compute ( img_1, keypoints_1, descriptors_1 );
+    descriptor->compute ( img_2, keypoints_2, descriptors_2 );
 
     Mat outimg1;
     drawKeypoints( img_1, keypoints_1, outimg1, Scalar::all(-1), DrawMatchesFlags::DEFAULT );
@@ -36,8 +56,8 @@ int main ( int argc, char** argv )
 
     //-- 第三步:对两幅图像中的BRIEF描述子进行匹配，使用 Hamming 距离
     vector<DMatch> matches;
-    BFMatcher matcher ( NORM_HAMMING );
-    matcher.match ( descriptors_1, descriptors_2, matches );
+    //BFMatcher matcher ( NORM_HAMMING );
+    matcher->match ( descriptors_1, descriptors_2, matches );
 
     //-- 第四步:匹配点对筛选
     double min_dist=10000, max_dist=0;

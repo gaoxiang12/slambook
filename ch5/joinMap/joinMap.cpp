@@ -28,10 +28,8 @@ int main( int argc, char** argv )
         depthImgs.push_back( cv::imread( (fmt%"depth"%(i+1)%"pgm").str(), -1 )); // 使用-1读取原始图像
         
         double data[7] = {0};
-        for ( int i=0; i<7; i++ )
-        {
-            fin>>data[i];
-        }
+        for ( auto& d:data )
+            fin>>d;
         Eigen::Quaterniond q( data[6], data[3], data[4], data[5] );
         Eigen::Isometry3d T(q);
         T.pretranslate( Eigen::Vector3d( data[0], data[1], data[2] ));

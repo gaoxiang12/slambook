@@ -96,7 +96,6 @@ int main ( int argc, char** argv )
         for (int i=0; i<3; i++)
             for (int j=0; j<3; j++)
                 R.matrix(i,j) = m(j,i);
-        // R.matrix = R.matrix.transpose();
         rotation_matrix = R;
         
         TranslationVector t;
@@ -105,7 +104,7 @@ int main ( int argc, char** argv )
         translation_vector = t;
         
         TranslationVector euler;
-        euler.trans = R.matrix.eulerAngles(2,0,1);
+        euler.trans = R.matrix.eulerAngles(2,1,1);
         euler_angles = euler;
         
         QuaternionDraw quat;

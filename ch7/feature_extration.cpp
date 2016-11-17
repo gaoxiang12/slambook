@@ -17,30 +17,14 @@ int main ( int argc, char** argv )
     Mat img_1 = imread ( argv[1], CV_LOAD_IMAGE_COLOR );
     Mat img_2 = imread ( argv[2], CV_LOAD_IMAGE_COLOR );
 
-    static const char* ddms[] =
-    {
-        "ORBX_BF", "ORB", "ORB", "BruteForce-Hamming",
-        //"ORB_BF", "ORB", "ORB", "BruteForce-Hamming",
-        //"ORB3_BF", "ORB", "ORB", "BruteForce-Hamming(2)",
-        //"ORB4_BF", "ORB", "ORB", "BruteForce-Hamming(2)",
-        //"ORB_LSH", "ORB", "ORB", "LSH"
-        //"SURF_BF", "SURF", "SURF", "BruteForce",
-        0
-    };
-    int i=0;
-    const char* name = ddms[i*4];
-    const char* detector_name = ddms[i*4+1];
-    const char* descriptor_name = ddms[i*4+2];
-    const char* matcher_name = ddms[i*4+3];
-    
-
     //-- 初始化
     std::vector<KeyPoint> keypoints_1, keypoints_2;
     Mat descriptors_1, descriptors_2;
-    Ptr<FeatureDetector> detector = FeatureDetector::create(detector_name);
-    Ptr<DescriptorExtractor> descriptor = DescriptorExtractor::create(descriptor_name);
-    Ptr<DescriptorMatcher> matcher  = DescriptorMatcher::create(matcher_name);
-    //Ptr<ORB> orb = ORB::create ( 500, 1.2f, 8, 31, 0, 2, ORB::HARRIS_SCORE,31,20 );
+    Ptr<FeatureDetector> detector = ORB::create();
+    Ptr<DescriptorExtractor> descriptor = ORB::create();
+    // Ptr<FeatureDetector> detector = FeatureDetector::create(detector_name);
+    // Ptr<DescriptorExtractor> descriptor = DescriptorExtractor::create(descriptor_name);
+    Ptr<DescriptorMatcher> matcher  = DescriptorMatcher::create ( "BruteForce-Hamming" );
 
     //-- 第一步:检测 Oriented FAST 角点位置
     detector->detect ( img_1,keypoints_1 );

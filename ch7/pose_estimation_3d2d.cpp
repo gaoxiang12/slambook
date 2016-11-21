@@ -55,7 +55,7 @@ int main ( int argc, char** argv )
     vector<Point2f> pts_2d;
     for ( DMatch m:matches )
     {
-        ushort d = d1.ptr<unsigned short> ( int ( keypoints_1[m.queryIdx].pt.y ) ) [ int ( keypoints_1[m.queryIdx].pt.x ) ];
+        ushort d = d1.ptr<unsigned short> (int ( keypoints_1[m.queryIdx].pt.y )) [ int ( keypoints_1[m.queryIdx].pt.x ) ];
         if ( d == 0 )   // bad depth
             continue;
         float dd = d/1000.0;
@@ -75,7 +75,6 @@ int main ( int argc, char** argv )
     cout<<"t="<<endl<<t<<endl;
 
     cout<<"calling bundle adjustment"<<endl;
-    // cout<<"R.type="<<R.type()<<", 32F="<<CV_32F<<", 64F="<<CV_64F<<endl;
 
     bundleAdjustment ( pts_3d, pts_2d, K, R, t );
 }
@@ -87,13 +86,13 @@ void find_feature_matches ( const Mat& img_1, const Mat& img_2,
 {
     //-- 初始化
     Mat descriptors_1, descriptors_2;
-    // used in OpenCV3 
+    // used in OpenCV3
     Ptr<FeatureDetector> detector = ORB::create();
     Ptr<DescriptorExtractor> descriptor = ORB::create();
-    // use this if you are in OpenCV2 
+    // use this if you are in OpenCV2
     // Ptr<FeatureDetector> detector = FeatureDetector::create ( "ORB" );
     // Ptr<DescriptorExtractor> descriptor = DescriptorExtractor::create ( "ORB" );
-    Ptr<DescriptorMatcher> matcher  = DescriptorMatcher::create("BruteForce-Hamming");
+    Ptr<DescriptorMatcher> matcher  = DescriptorMatcher::create ( "BruteForce-Hamming" );
     //-- 第一步:检测 Oriented FAST 角点位置
     detector->detect ( img_1,keypoints_1 );
     detector->detect ( img_2,keypoints_2 );
@@ -104,7 +103,7 @@ void find_feature_matches ( const Mat& img_1, const Mat& img_2,
 
     //-- 第三步:对两幅图像中的BRIEF描述子进行匹配，使用 Hamming 距离
     vector<DMatch> match;
-   // BFMatcher matcher ( NORM_HAMMING );
+    // BFMatcher matcher ( NORM_HAMMING );
     matcher->match ( descriptors_1, descriptors_2, match );
 
     //-- 第四步:匹配点对筛选
@@ -147,7 +146,7 @@ void bundleAdjustment (
     Mat& R, Mat& t )
 {
     // 初始化g2o
-    typedef g2o::BlockSolver< g2o::BlockSolverTraits<6,3> > Block;  // pose维度为 6, landmark 维度为 3
+    typedef g2o::BlockSolver< g2o::BlockSolverTraits<6,3> > Block;  // pose 维度为 6, landmark 维度为 3
     Block::LinearSolverType* linearSolver = new g2o::LinearSolverCSparse<Block::PoseMatrixType>(); // 线性方程求解器
     Block* solver_ptr = new Block ( linearSolver );     // 矩阵块求解器
     g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( solver_ptr );
@@ -158,9 +157,9 @@ void bundleAdjustment (
     g2o::VertexSE3Expmap* pose = new g2o::VertexSE3Expmap(); // camera pose
     Eigen::Matrix3d R_mat;
     R_mat <<
-        R.at<double> ( 0,0 ), R.at<double> ( 0,1 ), R.at<double> ( 0,2 ),
-        R.at<double> ( 1,0 ), R.at<double> ( 1,1 ), R.at<double> ( 1,2 ),
-        R.at<double> ( 2,0 ), R.at<double> ( 2,1 ), R.at<double> ( 2,2 );
+          R.at<double> ( 0,0 ), R.at<double> ( 0,1 ), R.at<double> ( 0,2 ),
+               R.at<double> ( 1,0 ), R.at<double> ( 1,1 ), R.at<double> ( 1,2 ),
+               R.at<double> ( 2,0 ), R.at<double> ( 2,1 ), R.at<double> ( 2,2 );
     pose->setId ( 0 );
     pose->setEstimate ( g2o::SE3Quat (
                             R_mat,
@@ -174,7 +173,7 @@ void bundleAdjustment (
         g2o::VertexSBAPointXYZ* point = new g2o::VertexSBAPointXYZ();
         point->setId ( index++ );
         point->setEstimate ( Eigen::Vector3d ( p.x, p.y, p.z ) );
-        point->setMarginalized ( true );
+        point->setMarginalized ( true ); // g2o 中必须设置 marg 参见第十讲内容
         optimizer.addVertex ( point );
     }
 

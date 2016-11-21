@@ -9,8 +9,8 @@
 #include <g2o/core/base_vertex.h>
 #include <g2o/core/base_unary_edge.h>
 #include <g2o/core/block_solver.h>
-#include <g2o/core/optimization_algorithm_levenberg.h>
-#include <g2o/solvers/csparse/linear_solver_csparse.h>
+#include <g2o/core/optimization_algorithm_gauss_newton.h>
+#include <g2o/solvers/eigen/linear_solver_eigen.h>
 #include <g2o/types/sba/types_six_dof_expmap.h>
 #include <chrono>
 
@@ -33,63 +33,60 @@ void pose_estimation_3d3d (
 );
 
 void bundleAdjustment(
-    const vector<Point3f> points_3d,
-    const vector<Point3f> points_2d,
+    const vector<Point3f>& points_3d,
+    const vector<Point3f>& points_2d,
     Mat& R, Mat& t
 );
 
 // g2o edge
-class EdgeProjectXYZRGBD : public g2o::BaseBinaryEdge<3, Eigen::Vector3d, g2o::VertexSBAPointXYZ, g2o::VertexSE3Expmap>
+class EdgeProjectXYZRGBDPoseOnly : public g2o::BaseUnaryEdge<3, Eigen::Vector3d, g2o::VertexSE3Expmap>
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-    EdgeProjectXYZRGBD() {}
+    EdgeProjectXYZRGBDPoseOnly( const Eigen::Vector3d& point ) : _point(point) {}
 
     virtual void computeError()
     {
-        const g2o::VertexSBAPointXYZ* point = static_cast<const g2o::VertexSBAPointXYZ*> ( _vertices[0] );
-        const g2o::VertexSE3Expmap* pose = static_cast<const g2o::VertexSE3Expmap*> ( _vertices[1] );
+        const g2o::VertexSE3Expmap* pose = static_cast<const g2o::VertexSE3Expmap*> ( _vertices[0] );
         // measurement is p, point is p'
-        _error = _measurement - pose->estimate().map( point->estimate() );
+        _error = _measurement - pose->estimate().map( _point );
     }
     
     virtual void linearizeOplus()
     {
-        g2o::VertexSE3Expmap* pose = static_cast<g2o::VertexSE3Expmap *>(_vertices[1]);
+        g2o::VertexSE3Expmap* pose = static_cast<g2o::VertexSE3Expmap *>(_vertices[0]);
         g2o::SE3Quat T(pose->estimate());
-        g2o::VertexSBAPointXYZ* point = static_cast<g2o::VertexSBAPointXYZ*>(_vertices[0]);
-        Eigen::Vector3d xyz = point->estimate();
-        Eigen::Vector3d xyz_trans = T.map(xyz);
+        Eigen::Vector3d xyz_trans = T.map(_point);
         double x = xyz_trans[0];
         double y = xyz_trans[1];
         double z = xyz_trans[2];
         
-        _jacobianOplusXi = - T.rotation().toRotationMatrix();
+        _jacobianOplusXi(0,0) = 0;
+        _jacobianOplusXi(0,1) = -z;
+        _jacobianOplusXi(0,2) = y;
+        _jacobianOplusXi(0,3) = -1;
+        _jacobianOplusXi(0,4) = 0;
+        _jacobianOplusXi(0,5) = 0;
         
-        _jacobianOplusXj(0,0) = 0;
-        _jacobianOplusXj(0,1) = -z;
-        _jacobianOplusXj(0,2) = y;
-        _jacobianOplusXj(0,3) = -1;
-        _jacobianOplusXj(0,4) = 0;
-        _jacobianOplusXj(0,5) = 0;
+        _jacobianOplusXi(1,0) = z;
+        _jacobianOplusXi(1,1) = 0;
+        _jacobianOplusXi(1,2) = -x;
+        _jacobianOplusXi(1,3) = 0;
+        _jacobianOplusXi(1,4) = -1;
+        _jacobianOplusXi(1,5) = 0;
         
-        _jacobianOplusXj(1,0) = z;
-        _jacobianOplusXj(1,1) = 0;
-        _jacobianOplusXj(1,2) = -x;
-        _jacobianOplusXj(1,3) = 0;
-        _jacobianOplusXj(1,4) = -1;
-        _jacobianOplusXj(1,5) = 0;
-        
-        _jacobianOplusXj(2,0) = -y;
-        _jacobianOplusXj(2,1) = x;
-        _jacobianOplusXj(2,2) = 0;
-        _jacobianOplusXj(2,3) = 0;
-        _jacobianOplusXj(2,4) = 0;
-        _jacobianOplusXj(2,5) = -1;
+        _jacobianOplusXi(2,0) = -y;
+        _jacobianOplusXi(2,1) = x;
+        _jacobianOplusXi(2,2) = 0;
+        _jacobianOplusXi(2,3) = 0;
+        _jacobianOplusXi(2,4) = 0;
+        _jacobianOplusXi(2,5) = -1;
     }
 
     bool read ( istream& in ) {}
     bool write ( ostream& out ) const {}
+protected:
+    Eigen::Vector3d _point;
 };
 
 int main ( int argc, char** argv )
@@ -142,17 +139,15 @@ int main ( int argc, char** argv )
     bundleAdjustment( pts1, pts2, R, t );
     
     // verify p1 = R*p2 + t
-    /*
-    for ( int i=0; i<pts1.size(); i++ )
+    for ( int i=0; i<5; i++ )
     {
         cout<<"p1 = "<<pts1[i]<<endl;
         cout<<"p2 = "<<pts2[i]<<endl;
-        cout<<"R*p2+t = "<< 
+        cout<<"(R*p2+t) = "<< 
             R * (Mat_<double>(3,1)<<pts2[i].x, pts2[i].y, pts2[i].z) + t
             <<endl;
         cout<<endl;
     }
-    */
 }
 
 void find_feature_matches ( const Mat& img_1, const Mat& img_2,
@@ -265,52 +260,38 @@ void pose_estimation_3d3d (
 }
 
 void bundleAdjustment (
-    const vector< Point3f > pts1,
-    const vector< Point3f > pts2,
+    const vector< Point3f >& pts1,
+    const vector< Point3f >& pts2,
     Mat& R, Mat& t )
 {
     // 初始化g2o
     typedef g2o::BlockSolver< g2o::BlockSolverTraits<6,3> > Block;  // pose维度为 6, landmark 维度为 3
-    Block::LinearSolverType* linearSolver = new g2o::LinearSolverCSparse<Block::PoseMatrixType>(); // 线性方程求解器
+    Block::LinearSolverType* linearSolver = new g2o::LinearSolverEigen<Block::PoseMatrixType>(); // 线性方程求解器
     Block* solver_ptr = new Block( linearSolver );      // 矩阵块求解器
-    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg( solver_ptr );
+    g2o::OptimizationAlgorithmGaussNewton* solver = new g2o::OptimizationAlgorithmGaussNewton( solver_ptr );
     g2o::SparseOptimizer optimizer;
     optimizer.setAlgorithm( solver );
 
     // vertex
     g2o::VertexSE3Expmap* pose = new g2o::VertexSE3Expmap(); // camera pose
-    Eigen::Matrix3d R_mat;
-    R_mat <<
-        R.at<double>(0,0), R.at<double>(0,1), R.at<double>(0,2),
-        R.at<double>(1,0), R.at<double>(1,1), R.at<double>(1,2),
-        R.at<double>(2,0), R.at<double>(2,1), R.at<double>(2,2);
     pose->setId(0);
     pose->setEstimate( g2o::SE3Quat(
-        R_mat,
-        Eigen::Vector3d( t.at<double>(0,0), t.at<double>(1,0), t.at<double>(2,0))
+        Eigen::Matrix3d::Identity(),
+        Eigen::Vector3d( 0,0,0 )
     ) );
     optimizer.addVertex( pose );
 
-    int index = 1;
-    for ( const Point3f p_prime:pts2 )   // p_prime 
-    {
-        g2o::VertexSBAPointXYZ* point = new g2o::VertexSBAPointXYZ();
-        point->setId( index++ );
-        point->setEstimate( Eigen::Vector3d(p_prime.x, p_prime.y, p_prime.z) );
-        point->setMarginalized( true );
-        optimizer.addVertex( point );
-    }
-
     // edges
-    index = 1;
-    vector<EdgeProjectXYZRGBD*> edges;
-    for ( const Point3f p:pts1 )
+    int index = 1;
+    vector<EdgeProjectXYZRGBDPoseOnly*> edges;
+    for ( size_t i=0; i<pts1.size(); i++ )
     {
-        EdgeProjectXYZRGBD* edge = new EdgeProjectXYZRGBD();
+        EdgeProjectXYZRGBDPoseOnly* edge = new EdgeProjectXYZRGBDPoseOnly( 
+            Eigen::Vector3d(pts2[i].x, pts2[i].y, pts2[i].z) );
         edge->setId( index );
-        edge->setVertex( 0, dynamic_cast<g2o::VertexSBAPointXYZ*> (optimizer.vertex(index)) );
-        edge->setVertex( 1, pose );
-        edge->setMeasurement( Eigen::Vector3d( p.x, p.y, p.z) );
+        edge->setVertex( 0, dynamic_cast<g2o::VertexSE3Expmap*> (pose) );
+        edge->setMeasurement( Eigen::Vector3d( 
+            pts1[i].x, pts1[i].y, pts1[i].z) );
         edge->setInformation( Eigen::Matrix3d::Identity()*1e4 );
         optimizer.addEdge(edge);
         index++;
@@ -320,7 +301,7 @@ void bundleAdjustment (
     chrono::steady_clock::time_point t1 = chrono::steady_clock::now();
     optimizer.setVerbose( true );
     optimizer.initializeOptimization();
-    optimizer.optimize(100);
+    optimizer.optimize(10);
     chrono::steady_clock::time_point t2 = chrono::steady_clock::now();
     chrono::duration<double> time_used = chrono::duration_cast<chrono::duration<double>>(t2-t1);
     cout<<"optimization costs time: "<<time_used.count()<<" seconds."<<endl;
@@ -328,12 +309,4 @@ void bundleAdjustment (
     cout<<endl<<"after optimization:"<<endl;
     cout<<"T="<<endl<<Eigen::Isometry3d( pose->estimate() ).matrix()<<endl;
     
-    index = 0;
-    for ( EdgeProjectXYZRGBD* edge: edges )
-    {
-        g2o::VertexSBAPointXYZ* point = dynamic_cast<g2o::VertexSBAPointXYZ*>( edge->vertices()[0] );
-        cout<<"p2 = "<<pts2[index++]<<endl;
-        cout<<"p2 adjusted = "<<point->estimate().transpose()<<endl;
-        cout<<endl;
-    }
 }

@@ -34,7 +34,7 @@ public:
     typedef std::shared_ptr<Frame> Ptr;
     unsigned long                  id_;         // id of this frame
     double                         time_stamp_; // when it is recorded
-    SE3                            T_c_w_;      // transform from frame to world
+    SE3                            T_c_w_;      // transform from world to camera
     Camera::Ptr                    camera_;     // Pinhole RGBD Camera model 
     Mat                            color_, depth_; // color and depth image 
     // std::vector<cv::KeyPoint>      keypoints_;  // key points in image

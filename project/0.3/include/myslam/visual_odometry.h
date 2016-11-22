@@ -51,7 +51,7 @@ public:
     vector<cv::DMatch>      feature_matches_;   // feature matches 
     cv::FlannBasedMatcher   matcher_flann_;     // flann matcher
    
-    SE3 T_c_w_estimated_;    // the estimated pose of current frame 
+    SE3 T_c_r_estimated_;    // the estimated pose of current frame 
     int num_inliers_;        // number of inlier features in icp
     int num_lost_;           // number of lost times
     

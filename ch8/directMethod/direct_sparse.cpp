@@ -21,6 +21,10 @@
 using namespace std;
 using namespace g2o;
 
+/********************************************
+ * 本节演示了RGBD上的稀疏直接法 
+ ********************************************/
+
 // 一次测量的值，包括一个世界坐标系下三维点与一个灰度值
 struct Measurement
 {
@@ -192,18 +196,18 @@ int main ( int argc, char** argv )
         {
             // 对第一帧提取FAST特征点
             vector<cv::KeyPoint> keypoints;
-            cv::Ptr<cv::FastFeatureDetector> detector;
+            cv::Ptr<cv::FastFeatureDetector> detector = cv::FastFeatureDetector::create();
             detector->detect ( color, keypoints );
             for ( auto kp:keypoints )
             {
                 // 去掉邻近边缘处的点
                 if ( kp.pt.x < 20 || kp.pt.y < 20 || ( kp.pt.x+20 ) >color.cols || ( kp.pt.y+20 ) >color.rows )
                     continue;
-                ushort d = depth.ptr<ushort> ( int ( kp.pt.y ) ) [ int ( kp.pt.x ) ];
+                ushort d = depth.ptr<ushort> ( cvRound ( kp.pt.y ) ) [ cvRound ( kp.pt.x ) ];
                 if ( d==0 )
                     continue;
                 Eigen::Vector3d p3d = project2Dto3D ( kp.pt.x, kp.pt.y, d, fx, fy, cx, cy, depth_scale );
-                float grayscale = float ( gray.ptr<uchar> ( int ( kp.pt.y ) ) [ int ( kp.pt.x ) ] );
+                float grayscale = float ( gray.ptr<uchar> ( cvRound ( kp.pt.y ) ) [ cvRound ( kp.pt.x ) ] );
                 measurements.push_back ( Measurement ( p3d, grayscale ) );
             }
             prev_color = color.clone();

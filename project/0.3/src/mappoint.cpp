@@ -24,13 +24,13 @@ namespace myslam
 {
 
 MapPoint::MapPoint()
-: id_(-1), pos_(Vector3d(0,0,0)), norm_(Vector3d(0,0,0)), good_(true), observed_times_(0), correct_times_(0)
+: id_(-1), pos_(Vector3d(0,0,0)), norm_(Vector3d(0,0,0)), good_(true), observed_times_(0)
 {
 
 }
 
 MapPoint::MapPoint ( long id, Vector3d position, Vector3d norm )
-: id_(id), pos_(position), norm_(norm), good_(true), observed_times_(0), correct_times_(0)
+: id_(id), pos_(position), norm_(norm), good_(true), observed_times_(0)
 {
 
 }

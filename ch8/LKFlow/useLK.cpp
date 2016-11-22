@@ -21,6 +21,11 @@ int main( int argc, char** argv )
     string associate_file = path_to_dataset + "/associate.txt";
     
     ifstream fin( associate_file );
+    if ( !fin ) 
+    {
+        cerr<<"I cann't find associate.txt!"<<endl;
+        return 1;
+    }
     
     string rgb_file, depth_file, time_rgb, time_depth;
     list< cv::Point2f > keypoints;      // 因为要删除跟踪失败的点，使用list
@@ -35,7 +40,7 @@ int main( int argc, char** argv )
         {
             // 对第一帧提取FAST特征点
             vector<cv::KeyPoint> kps;
-            cv::Ptr<cv::FastFeatureDetector> detector;
+            cv::Ptr<cv::FastFeatureDetector> detector = cv::FastFeatureDetector::create();
             detector->detect( color, kps );
             for ( auto kp:kps )
                 keypoints.push_back( kp.pt );

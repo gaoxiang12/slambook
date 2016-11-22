@@ -199,8 +199,9 @@ void VisualOdometry::poseEstimationPnP()
     g2o::VertexSE3Expmap* pose = new g2o::VertexSE3Expmap();
     pose->setId ( 0 );
     pose->setEstimate ( g2o::SE3Quat (
-                            T_c_r_estimated_.rotation_matrix(), T_c_r_estimated_.translation()
-                        ) );
+        T_c_r_estimated_.rotation_matrix(), 
+        T_c_r_estimated_.translation()
+    ) );
     optimizer.addVertex ( pose );
 
     // edges

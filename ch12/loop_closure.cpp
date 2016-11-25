@@ -9,12 +9,15 @@
 using namespace cv;
 using namespace std;
 
+/***************************************************
+ * 本节演示了如何根据前面训练的字典计算相似性评分
+ * ************************************************/
 int main( int argc, char** argv )
 {
     // read the images and database  
     cout<<"reading database"<<endl;
     DBoW3::Vocabulary vocab("./vocabulary.yml.gz");
-    // DBoW3::Vocabulary vocab("./vocab_larger.yml.gz");
+    // DBoW3::Vocabulary vocab("./vocab_larger.yml.gz");  // use large vocab if you want: 
     if ( vocab.empty() )
     {
         cerr<<"Vocabulary does not exist."<<endl;
@@ -42,7 +45,7 @@ int main( int argc, char** argv )
     }
     
     // we can compare the images directly or we can compare one image to a database 
-    // images 
+    // images :
     cout<<"comparing images with images "<<endl;
     for ( int i=0; i<images.size(); i++ )
     {

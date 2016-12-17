@@ -104,7 +104,7 @@ int main ( int argc, char** argv )
         translation_vector = t;
         
         TranslationVector euler;
-        euler.trans = R.matrix.eulerAngles(2,1,1);
+        euler.trans = R.matrix.transpose().eulerAngles(2,1,0);
         euler_angles = euler;
         
         QuaternionDraw quat;

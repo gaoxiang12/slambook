@@ -74,7 +74,8 @@ int main( int argc, char** argv )
     cout << matrix_33.determinant() << endl;    // 行列式
 
     // 特征值
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigen_solver ( matrix_33 );
+    // 实对称矩阵可以保证对角化成功
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigen_solver ( matrix_33.transpose()*matrix_33 );
     cout << "Eigen values = \n" << eigen_solver.eigenvalues() << endl;
     cout << "Eigen vectors = \n" << eigen_solver.eigenvectors() << endl;
 

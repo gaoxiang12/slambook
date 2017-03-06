@@ -1,5 +1,5 @@
 # slambook
-This is the code written for my new book about visual SLAM. It will come in the spring of next year. I am reviewing the context and codes right now.
+This is the code written for my new book about visual SLAM. It will come in April 2017. I am reviewing the context and codes right now.
 
 It is highy recommended to download the code and run it in you machine because you can learn more and even modify it by doing so. In this repo, the code is stored by chapters like "ch2" and "ch4". Note that chapter 9 is a project so I stored it in the "project" directory.
 
@@ -7,7 +7,25 @@ If you have any questions about the code, please add an issue so I can solve it.
 
 These codes are under MIT license. You don't need permission to use it or change it. But I recommed to cite this book if you are doing academic works.
 
-Citation will be added after the book is published.
+Citation will be added as soon as the book is officially published.
+
+Please cite: 
+Xiang Gao, Tao Zhang, Qinrui Yan, Yi Liu, 14 Lectures on Visual SLAM: From Theory to Practice, Publishing House of Electronics Industry, 2017.
+
+# Contents
+- ch1 Preface
+- ch2 Overview of SLAM & linux, cmake
+- ch3 Rigid body motion & Eigen
+- ch4 Lie group and Lie Algebra & Sophus
+- ch5 Cameras and Images & OpenCV
+- ch6 Non-linear optimization & Ceres, g2o
+- ch7 Feature based Visual Odometry
+- ch8 Direct (Intensity based) Visual Odometry
+- ch9 Project
+- ch10 Back end optimization & Ceres, g2o
+- ch11 Pose graph and Factor graph & g2o, gtsam
+- ch12 Loop closure & DBoW3
+- ch13 Dense reconstruction & REMODE, Octomap
 
 # slambook (中文说明)
 我最近写了一本有关视觉SLAM的书籍，这是它对应的代码。书籍将会在明年春天由电子工业出版社出版。
@@ -21,15 +39,18 @@ Citation will be added after the book is published.
 引用格式将在本书发表后给出。
 
 # 目录
-## ch2 概述，cmake基础
-## ch3 Eigen，三维几何
-## ch4 Sophus，李群与李代数
-## ch5 OpenCV，图像与相机模型
-## ch6 Ceres and g2o，非线性优化
-## ch7 特征点法视觉里程计
-## ch8 直接法视觉里程计
-## ch9 project
-## ch10 Ceres and g2o，后端优化1
-## ch11 g2o and gtsam，位姿图优化
-## ch12 DBoW3，词袋方法
-## ch13 稠密地图构建
+- ch2 概述，cmake基础
+- ch3 Eigen，三维几何
+- ch4 Sophus，李群与李代数
+- ch5 OpenCV，图像与相机模型
+- ch6 Ceres and g2o，非线性优化
+- ch7 特征点法视觉里程计
+- ch8 直接法视觉里程计
+- ch9 project
+- ch10 Ceres and g2o，后端优化1
+- ch11 g2o and gtsam，位姿图优化
+- ch12 DBoW3，词袋方法
+- ch13 稠密地图构建
+
+引用格式：
+高翔, 张涛, 颜沁睿, 刘毅, 视觉SLAM十四讲：从理论到实践, 电子工业出版社, 2017

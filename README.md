@@ -11,12 +11,12 @@ Please cite:
 Xiang Gao, Tao Zhang, Yi Liu, Qinrui Yan, 14 Lectures on Visual SLAM: From Theory to Practice, Publishing House of Electronics Industry, 2017.
 
 In LaTeX:
-```@Book{Gao2017SLAM, 
+`` @Book{Gao2017SLAM, 
 title={14 Lectures on Visual SLAM: From Theory to Practice}, 
 publisher = {Publishing House of Electronics Industry},
 year = {2017},
 author = {Xiang Gao and Tao Zhang and Yi Liu and Qinrui Yan},
-}```
+} ``
 
 For English readers, we are currently translating this book into an onlier verion, see [this page](https://gaoxiang12.github.io/slambook-en/) for details.
 
@@ -64,10 +64,10 @@ For English readers, we are currently translating this book into an onlier verio
 高翔, 张涛, 颜沁睿, 刘毅, 视觉SLAM十四讲：从理论到实践, 电子工业出版社, 2017
 
 LaTeX格式:
-```@Book{Gao2017SLAM, 
+`` @Book{Gao2017SLAM, 
 title={视觉SLAM十四讲：从理论到实践}, 
 publisher = {电子工业出版社},
 year = {2017},
 author = {高翔 and 张涛 and 刘毅 and 颜沁睿},
 lang = {zh}
-}```
+} ``

@@ -7,10 +7,18 @@ If you have any questions about the code, please add an issue so I can solve it.
 
 These codes are under MIT license. You don't need permission to use it or change it. But I recommed to cite this book if you are doing academic works.
 
-Citation will be added as soon as the book is officially published.
-
 Please cite: 
-Xiang Gao, Tao Zhang, Qinrui Yan, Yi Liu, 14 Lectures on Visual SLAM: From Theory to Practice, Publishing House of Electronics Industry, 2017.
+Xiang Gao, Tao Zhang, Yi Liu, Qinrui Yan, 14 Lectures on Visual SLAM: From Theory to Practice, Publishing House of Electronics Industry, 2017.
+
+In LaTeX:
+`` @Book{Gao2017SLAM, 
+title={14 Lectures on Visual SLAM: From Theory to Practice}, 
+publisher = {Publishing House of Electronics Industry},
+year = {2017},
+author = {Xiang Gao and Tao Zhang and Yi Liu and Qinrui Yan},
+} ``
+
+For English readers, we are currently translating this book into an onlier verion, see [this page](https://gaoxiang12.github.io/slambook-en/) for details.
 
 # Contents
 - ch1 Preface
@@ -54,3 +62,12 @@ Xiang Gao, Tao Zhang, Qinrui Yan, Yi Liu, 14 Lectures on Visual SLAM: From Theor
 
 引用格式：
 高翔, 张涛, 颜沁睿, 刘毅, 视觉SLAM十四讲：从理论到实践, 电子工业出版社, 2017
+
+LaTeX格式:
+`` @Book{Gao2017SLAM, 
+title={视觉SLAM十四讲：从理论到实践}, 
+publisher = {电子工业出版社},
+year = {2017},
+author = {高翔 and 张涛 and 刘毅 and 颜沁睿},
+lang = {zh}
+} ``

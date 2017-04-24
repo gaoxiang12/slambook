@@ -18,7 +18,7 @@ year = {2017},
 author = {Xiang Gao and Tao Zhang and Yi Liu and Qinrui Yan},
 } ``
 
-For English readers, we are currently translating this book into an onlier verion, see [this page](https://gaoxiang12.github.io/slambook-en/) for details.
+For English readers, we are currently translating this book into an online verion, see [this page](https://gaoxiang12.github.io/slambook-en/) for details.
 
 # Contents
 - ch1 Preface

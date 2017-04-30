@@ -22,7 +22,7 @@ int main ( int argc, char** argv )
     cv::imshow ( "image", image );      // 用cv::imshow显示图像
     cv::waitKey ( 0 );                  // 暂停程序,等待一个按键输入
     // 判断image的类型
-    if ( image.type() != CV_8UC1 || image.type() != CV_8UC3 )
+    if ( image.type() != CV_8UC1 && image.type() != CV_8UC3 )
     {
         // 图像类型不符合要求
         cout<<"请输入一张彩色图或灰度图."<<endl;

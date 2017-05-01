@@ -340,7 +340,11 @@ bool updateDepthFilter(
     Vector3d f_curr = px2cam( pt_curr );
     f_curr.normalize();
     
-	// 方程参照本书第 7 讲三角化一节
+    // 方程
+    // d_ref * f_ref = d_cur * ( R_RC * f_cur ) + t_RC
+    // => [ f_ref^T f_ref, -f_ref^T f_cur ] [d_ref] = [f_ref^T t]
+    //    [ f_cur^T f_ref, -f_cur^T f_cur ] [d_cur] = [f_cur^T t]
+    // 二阶方程用克莱默法则求解并解之
     Vector3d t = T_R_C.translation();
     Vector3d f2 = T_R_C.rotation_matrix() * f_curr; 
     Vector2d b = Vector2d ( t.dot ( f_ref ), t.dot ( f2 ) );

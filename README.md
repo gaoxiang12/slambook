@@ -74,5 +74,3 @@ lang = {zh}
 
 # 备注
 百度云备份：[https://pan.baidu.com/s/1slDE7cL]
-
-引用格式：

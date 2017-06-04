@@ -35,7 +35,7 @@ Matrix6d JRInv( SE3 e )
     J.block(0,3,3,3) = SO3::hat(e.translation());
     J.block(3,0,3,3) = Eigen::Matrix3d::Zero(3,3);
     J.block(3,3,3,3) = SO3::hat(e.so3().log());
-    J = J*0.5 + Matrix6d::Identity();
+    // J = J*0.5 + Matrix6d::Identity();
     return J;
 }
 // 李代数顶点
@@ -137,8 +137,10 @@ public:
         Sophus::SE3 v2 = (static_cast<VertexSE3LieAlgebra*> (_vertices[1]))->estimate();
         Matrix6d J = JRInv(SE3::exp(_error));
         // 尝试把J近似为I？
-        _jacobianOplusXi = - J* v2.inverse().Adj();
-        _jacobianOplusXj = J*v2.inverse().Adj();
+        // _jacobianOplusXi = - J* v2.inverse().Adj();
+        // _jacobianOplusXj = J*v2.inverse().Adj();
+        _jacobianOplusXi = -(0.5 * J + Matrix6d::Identity()) * v2.inverse().Adj();
+        _jacobianOplusXj = (-0.5 * J + Matrix6d::Identity()) * v2.inverse().Adj();
     }
 };
 

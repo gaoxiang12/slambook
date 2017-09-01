@@ -12,7 +12,7 @@ using namespace std;
 int main( int argc, char** argv )
 {
     vector<cv::Mat> colorImgs, depthImgs;    // 彩色图和深度图
-    vector<Eigen::Isometry3d> poses;         // 相机位姿
+    vector<Eigen::Isometry3d, Eigen::aligned_allocator<Eigen::Isometry3d>> poses;         // 相机位姿
     
     ifstream fin("./pose.txt");
     if (!fin)

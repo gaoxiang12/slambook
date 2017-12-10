@@ -51,7 +51,7 @@ public:
         // measurement is p, point is p'
         _error = _measurement - pose->estimate().map( _point );
     }
-    
+
     virtual void linearizeOplus()
     {
         g2o::VertexSE3Expmap* pose = static_cast<g2o::VertexSE3Expmap *>(_vertices[0]);
@@ -60,21 +60,21 @@ public:
         double x = xyz_trans[0];
         double y = xyz_trans[1];
         double z = xyz_trans[2];
-        
+
         _jacobianOplusXi(0,0) = 0;
         _jacobianOplusXi(0,1) = -z;
         _jacobianOplusXi(0,2) = y;
         _jacobianOplusXi(0,3) = -1;
         _jacobianOplusXi(0,4) = 0;
         _jacobianOplusXi(0,5) = 0;
-        
+
         _jacobianOplusXi(1,0) = z;
         _jacobianOplusXi(1,1) = 0;
         _jacobianOplusXi(1,2) = -x;
         _jacobianOplusXi(1,3) = 0;
         _jacobianOplusXi(1,4) = -1;
         _jacobianOplusXi(1,5) = 0;
-        
+
         _jacobianOplusXi(2,0) = -y;
         _jacobianOplusXi(2,1) = x;
         _jacobianOplusXi(2,2) = 0;
@@ -119,8 +119,8 @@ int main ( int argc, char** argv )
             continue;
         Point2d p1 = pixel2cam ( keypoints_1[m.queryIdx].pt, K );
         Point2d p2 = pixel2cam ( keypoints_2[m.trainIdx].pt, K );
-        float dd1 = float ( d1 ) /1000.0;
-        float dd2 = float ( d2 ) /1000.0;
+        float dd1 = float ( d1 ) /5000.0;
+        float dd2 = float ( d2 ) /5000.0;
         pts1.push_back ( Point3f ( p1.x*dd1, p1.y*dd1, dd1 ) );
         pts2.push_back ( Point3f ( p2.x*dd2, p2.y*dd2, dd2 ) );
     }
@@ -137,13 +137,13 @@ int main ( int argc, char** argv )
     cout<<"calling bundle adjustment"<<endl;
 
     bundleAdjustment( pts1, pts2, R, t );
-    
+
     // verify p1 = R*p2 + t
     for ( int i=0; i<5; i++ )
     {
         cout<<"p1 = "<<pts1[i]<<endl;
         cout<<"p2 = "<<pts2[i]<<endl;
-        cout<<"(R*p2+t) = "<< 
+        cout<<"(R*p2+t) = "<<
             R * (Mat_<double>(3,1)<<pts2[i].x, pts2[i].y, pts2[i].z) + t
             <<endl;
         cout<<endl;
@@ -157,10 +157,10 @@ void find_feature_matches ( const Mat& img_1, const Mat& img_2,
 {
     //-- 初始化
     Mat descriptors_1, descriptors_2;
-    // used in OpenCV3 
+    // used in OpenCV3
     Ptr<FeatureDetector> detector = ORB::create();
     Ptr<DescriptorExtractor> descriptor = ORB::create();
-    // use this if you are in OpenCV2 
+    // use this if you are in OpenCV2
     // Ptr<FeatureDetector> detector = FeatureDetector::create ( "ORB" );
     // Ptr<DescriptorExtractor> descriptor = DescriptorExtractor::create ( "ORB" );
     Ptr<DescriptorMatcher> matcher  = DescriptorMatcher::create("BruteForce-Hamming");
@@ -286,11 +286,11 @@ void bundleAdjustment (
     vector<EdgeProjectXYZRGBDPoseOnly*> edges;
     for ( size_t i=0; i<pts1.size(); i++ )
     {
-        EdgeProjectXYZRGBDPoseOnly* edge = new EdgeProjectXYZRGBDPoseOnly( 
+        EdgeProjectXYZRGBDPoseOnly* edge = new EdgeProjectXYZRGBDPoseOnly(
             Eigen::Vector3d(pts2[i].x, pts2[i].y, pts2[i].z) );
         edge->setId( index );
         edge->setVertex( 0, dynamic_cast<g2o::VertexSE3Expmap*> (pose) );
-        edge->setMeasurement( Eigen::Vector3d( 
+        edge->setMeasurement( Eigen::Vector3d(
             pts1[i].x, pts1[i].y, pts1[i].z) );
         edge->setInformation( Eigen::Matrix3d::Identity()*1e4 );
         optimizer.addEdge(edge);
@@ -308,5 +308,5 @@ void bundleAdjustment (
 
     cout<<endl<<"after optimization:"<<endl;
     cout<<"T="<<endl<<Eigen::Isometry3d( pose->estimate() ).matrix()<<endl;
-    
+
 }

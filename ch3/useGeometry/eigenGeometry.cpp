@@ -34,7 +34,7 @@ int main ( int argc, char** argv )
     cout<<"yaw pitch roll = "<<euler_angles.transpose()<<endl;
 
     // 欧氏变换矩阵使用 Eigen::Isometry
-    Eigen::Isometry3d T=Eigen::Isometry3d::Identity();                // 虽然称为3d，实质上是4＊4的矩阵
+    Eigen::Isometry3d T = Eigen::Isometry3d::Identity();                // 虽然称为3d，实质上是4＊4的矩阵
     T.rotate ( rotation_vector );                                     // 按照rotation_vector进行旋转
     T.pretranslate ( Eigen::Vector3d ( 1,3,4 ) );                     // 把平移向量设成(1,3,4)
     cout << "Transform matrix = \n" << T.matrix() <<endl;

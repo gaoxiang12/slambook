@@ -1,13 +1,10 @@
 # slambook
-This is the code written for my new book about visual SLAM. It will come in April 2017. I am reviewing the context and codes right now.
+This is the code written for my new book about visual SLAM called "14 lectures on visual SLAM" which is released in April 2017. It is highy recommended to download the code and run it in you own machine so that you can learn more efficiently and even modify it. The code is stored by chapters like "ch2" and "ch4". Note that chapter 9 is a project so I stored it in the "project" directory.
 
-It is highy recommended to download the code and run it in you machine because you can learn more and even modify it by doing so. In this repo, the code is stored by chapters like "ch2" and "ch4". Note that chapter 9 is a project so I stored it in the "project" directory.
+If you have any questions about the code, please add an issue so I can see it. Contact me for more information: gao dot xiang dot thu at gmail dot com.
 
-If you have any questions about the code, please add an issue so I can solve it. Contact me for more information: gaoxiang12 dot mails dot tsinghua dot edu dot cn.
-
-These codes are under MIT license. You don't need permission to use it or change it. But I recommed to cite this book if you are doing academic works.
-
-Please cite: 
+These codes are under MIT license. You don't need permission to use it or change it. 
+Please cite this book if you are doing academic work:
 Xiang Gao, Tao Zhang, Yi Liu, Qinrui Yan, 14 Lectures on Visual SLAM: From Theory to Practice, Publishing House of Electronics Industry, 2017.
 
 In LaTeX:
@@ -18,7 +15,7 @@ year = {2017},
 author = {Xiang Gao and Tao Zhang and Yi Liu and Qinrui Yan},
 } ``
 
-For English readers, we are currently translating this book into an online verion, see [this page](https://gaoxiang12.github.io/slambook-en/) for details.
+For English readers, we are currently translating this book into an online version, see [this page](https://gaoxiang12.github.io/slambook-en/) for details.
 
 # Contents
 - ch1 Preface

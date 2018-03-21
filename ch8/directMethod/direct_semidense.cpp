@@ -166,6 +166,11 @@ int main ( int argc, char** argv )
     string associate_file = path_to_dataset + "/associate.txt";
 
     ifstream fin ( associate_file );
+    if ( !fin )
+    {
+        cerr<<"I cann't find associate.txt!"<<endl;
+        return 1;
+    }
 
     string rgb_file, depth_file, time_rgb, time_depth;
     cv::Mat color, depth, gray;

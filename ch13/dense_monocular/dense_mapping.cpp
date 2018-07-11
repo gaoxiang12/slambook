@@ -96,7 +96,7 @@ inline double getBilinearInterpolatedValue( const Mat& img, const Vector2d& pt )
 // ------------------------------------------------------------------
 // 一些小工具 
 // 显示估计的深度图 
-bool plotDepth( const Mat& depth );
+void plotDepth( const Mat& depth );
 
 // 像素到相机坐标系 
 inline Vector3d px2cam ( const Vector2d px ) {
@@ -389,7 +389,7 @@ bool updateDepthFilter(
 }
 
 // 后面这些太简单我就不注释了（其实是因为懒）
-bool plotDepth(const Mat& depth)
+void plotDepth(const Mat& depth)
 {
     imshow( "depth", depth*0.4 );
     waitKey(1);

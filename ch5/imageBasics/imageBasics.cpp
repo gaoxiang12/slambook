@@ -34,11 +34,11 @@ int main ( int argc, char** argv )
     chrono::steady_clock::time_point t1 = chrono::steady_clock::now();
     for ( size_t y=0; y<image.rows; y++ )
     {
+        // 用cv::Mat::ptr获得图像的行指针
+        unsigned char* row_ptr = image.ptr<unsigned char> ( y );  // row_ptr是第y行的头指针
         for ( size_t x=0; x<image.cols; x++ )
         {
             // 访问位于 x,y 处的像素
-            // 用cv::Mat::ptr获得图像的行指针
-            unsigned char* row_ptr = image.ptr<unsigned char> ( y );  // row_ptr是第y行的头指针
             unsigned char* data_ptr = &row_ptr[ x*image.channels() ]; // data_ptr 指向待访问的像素数据
             // 输出该像素的每个通道,如果是灰度图就只有一个通道
             for ( int c = 0; c != image.channels(); c++ )

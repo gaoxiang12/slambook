@@ -125,7 +125,7 @@ public:
         {
             assert ( 0 && "Error while differentiating" );
             _jacobianOplusXi.setZero();
-            _jacobianOplusXi.setZero();
+            _jacobianOplusXj.setZero();
         }
     }
 };

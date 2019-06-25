@@ -1,0 +1,13 @@
+diff --git a/cmake_modules/FindQGLViewer.cmake b/cmake_modules/FindQGLViewer.cmake
+index 9e0d1f3..6356422 100644
+--- a/cmake_modules/FindQGLViewer.cmake
++++ b/cmake_modules/FindQGLViewer.cmake
+@@ -19,7 +19,7 @@ FIND_PATH(QGLVIEWER_INCLUDE_DIR qglviewer.h
+   )
+ 
+ find_library(QGLVIEWER_LIBRARY_RELEASE
+-  NAMES qglviewer-qt4 qglviewer QGLViewer QGLViewer2
++  NAMES qglviewer-qt4 QGLViewer-qt4 qglviewer QGLViewer QGLViewer2
+   PATHS /usr/lib
+         /usr/local/lib
+         /opt/local/lib

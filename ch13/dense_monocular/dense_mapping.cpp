@@ -96,7 +96,7 @@ inline double getBilinearInterpolatedValue( const Mat& img, const Vector2d& pt )
 // ------------------------------------------------------------------
 // 一些小工具 
 // 显示估计的深度图 
-bool plotDepth( const Mat& depth );
+void plotDepth( const Mat& depth );
 
 // 像素到相机坐标系 
 inline Vector3d px2cam ( const Vector2d px ) {
@@ -340,7 +340,11 @@ bool updateDepthFilter(
     Vector3d f_curr = px2cam( pt_curr );
     f_curr.normalize();
     
-	// 方程参照本书第 7 讲三角化一节
+    // 方程
+    // d_ref * f_ref = d_cur * ( R_RC * f_cur ) + t_RC
+    // => [ f_ref^T f_ref, -f_ref^T f_cur ] [d_ref] = [f_ref^T t]
+    //    [ f_cur^T f_ref, -f_cur^T f_cur ] [d_cur] = [f_cur^T t]
+    // 二阶方程用克莱默法则求解并解之
     Vector3d t = T_R_C.translation();
     Vector3d f2 = T_R_C.rotation_matrix() * f_curr; 
     Vector2d b = Vector2d ( t.dot ( f_ref ), t.dot ( f2 ) );
@@ -385,7 +389,7 @@ bool updateDepthFilter(
 }
 
 // 后面这些太简单我就不注释了（其实是因为懒）
-bool plotDepth(const Mat& depth)
+void plotDepth(const Mat& depth)
 {
     imshow( "depth", depth*0.4 );
     waitKey(1);

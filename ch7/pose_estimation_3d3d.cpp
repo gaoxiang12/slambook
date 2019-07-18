@@ -244,6 +244,15 @@ void pose_estimation_3d3d (
     Eigen::JacobiSVD<Eigen::Matrix3d> svd ( W, Eigen::ComputeFullU|Eigen::ComputeFullV );
     Eigen::Matrix3d U = svd.matrixU();
     Eigen::Matrix3d V = svd.matrixV();
+    
+    if (U.determinant() * V.determinant() < 0)
+	{
+        for (int x = 0; x < 3; ++x)
+        {
+            U(x, 2) *= -1;
+        }
+	}
+    
     cout<<"U="<<U<<endl;
     cout<<"V="<<V<<endl;
 

@@ -1,3 +1,6 @@
+# NOTE
+[Slambook 2](https://github.com/gaoxiang12/slambook2) has be released since 2019.8 which has better support on Ubuntu 18.04 and has a lot of new features. Slambook 1 will still be available on github but I suggest new readers switch to the second version. 
+
 # slambook
 This is the code written for my new book about visual SLAM called "14 lectures on visual SLAM" which was released in April 2017. It is highy recommended to download the code and run it in you own machine so that you can learn more efficiently and also modify it. The code is stored by chapters like "ch2" and "ch4". Note that chapter 9 is a project so I stored it in the "project" directory.
 

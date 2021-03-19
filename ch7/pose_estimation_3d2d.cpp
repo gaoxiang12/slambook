@@ -146,27 +146,32 @@ void bundleAdjustment (
     Mat& R, Mat& t )
 {
     // 初始化g2o
+    // 初始化部分需要改成unique_ptr的， 2018年06月01日17:54:25
     typedef g2o::BlockSolver< g2o::BlockSolverTraits<6,3> > Block;  // pose 维度为 6, landmark 维度为 3
-    Block::LinearSolverType* linearSolver = new g2o::LinearSolverCSparse<Block::PoseMatrixType>(); // 线性方程求解器
-    Block* solver_ptr = new Block ( linearSolver );     // 矩阵块求解器
-    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( solver_ptr );
+    std::unique_ptr<Block::LinearSolverType> linearSolver (new g2o::LinearSolverCSparse<Block::PoseMatrixType>()); // 线性方程求解器
+    std::unique_ptr<Block> solver_ptr( new Block(std::move(linearSolver)));     // 矩阵块求解器
+    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( std::move(solver_ptr) );
     g2o::SparseOptimizer optimizer;
     optimizer.setAlgorithm ( solver );
 
-    // vertex
+    // vertex(se(3), R, t
     g2o::VertexSE3Expmap* pose = new g2o::VertexSE3Expmap(); // camera pose
     Eigen::Matrix3d R_mat;
     R_mat <<
-          R.at<double> ( 0,0 ), R.at<double> ( 0,1 ), R.at<double> ( 0,2 ),
+               R.at<double> ( 0,0 ), R.at<double> ( 0,1 ), R.at<double> ( 0,2 ),
                R.at<double> ( 1,0 ), R.at<double> ( 1,1 ), R.at<double> ( 1,2 ),
                R.at<double> ( 2,0 ), R.at<double> ( 2,1 ), R.at<double> ( 2,2 );
+
     pose->setId ( 0 );
-    pose->setEstimate ( g2o::SE3Quat (
+    pose->setEstimate ( g2o::SE3Quat (  //si yuan shu {R}, t
                             R_mat,
                             Eigen::Vector3d ( t.at<double> ( 0,0 ), t.at<double> ( 1,0 ), t.at<double> ( 2,0 ) )
-                        ) );
+                        ) 
+    );
+
     optimizer.addVertex ( pose );
 
+    // vertex (Pos in world axes)
     int index = 1;
     for ( const Point3f p:points_3d )   // landmarks
     {

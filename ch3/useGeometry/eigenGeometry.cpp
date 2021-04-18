@@ -30,7 +30,7 @@ int main ( int argc, char** argv )
     cout<<"(1,0,0) after rotation = "<<v_rotated.transpose()<<endl;
 
     // 欧拉角: 可以将旋转矩阵直接转换成欧拉角
-    Eigen::Vector3d euler_angles = rotation_matrix.eulerAngles ( 2,1,0 ); // ZYX顺序，即roll pitch yaw顺序
+    Eigen::Vector3d euler_angles = rotation_matrix.eulerAngles ( 2,1,0 ); // ZYX顺序，即yaw pitch roll顺序
     cout<<"yaw pitch roll = "<<euler_angles.transpose()<<endl;
 
     // 欧氏变换矩阵使用 Eigen::Isometry

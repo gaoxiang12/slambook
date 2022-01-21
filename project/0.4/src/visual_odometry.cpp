@@ -298,7 +298,7 @@ void VisualOdometry::addMapPoints()
     {
         if ( matched[i] == true )   
             continue;
-        double d = ref_->findDepth ( keypoints_curr_[i] );
+        double d = curr_->findDepth ( keypoints_curr_[i] );
         if ( d<0 )  
             continue;
         Vector3d p_world = ref_->camera_->pixel2world (

@@ -9,6 +9,7 @@
 #include <Eigen/Core>
 #include <opencv2/core/core.hpp>
 #include <cmath>
+#include <memory>
 #include <chrono>
 using namespace std; 
 
@@ -73,10 +74,10 @@ int main( int argc, char** argv )
     
     // 构建图优化，先设定g2o
     typedef g2o::BlockSolver< g2o::BlockSolverTraits<3,1> > Block;  // 每个误差项优化变量维度为3，误差值维度为1
-    Block::LinearSolverType* linearSolver = new g2o::LinearSolverDense<Block::PoseMatrixType>(); // 线性方程求解器
-    Block* solver_ptr = new Block( linearSolver );      // 矩阵块求解器
+    auto linearSolver = std::make_unique<g2o::LinearSolverDense<Block::PoseMatrixType>>(); // 线性方程求解器
+    auto solver_ptr = std::make_unique<Block>( std::move(linearSolver) );      // 矩阵块求解器
     // 梯度下降方法，从GN, LM, DogLeg 中选
-    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg( solver_ptr );
+    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg( std::move(solver_ptr) );
     // g2o::OptimizationAlgorithmGaussNewton* solver = new g2o::OptimizationAlgorithmGaussNewton( solver_ptr );
     // g2o::OptimizationAlgorithmDogleg* solver = new g2o::OptimizationAlgorithmDogleg( solver_ptr );
     g2o::SparseOptimizer optimizer;     // 图模型

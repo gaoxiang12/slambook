@@ -12,7 +12,7 @@ find_package( Ceres REQUIRED )
 include_directories( ${CERES_INCLUDE_DIRS} )
 
 # OpenCV
-find_package( OpenCV REQUIRED )
+find_package( OpenCV 3  REQUIRED )
 include_directories( ${OpenCV_DIRS} )
 
 add_executable( curve_fitting main.cpp )

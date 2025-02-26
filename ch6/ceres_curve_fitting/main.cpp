@@ -2,7 +2,7 @@
 #include <opencv2/core/core.hpp>
 #include <ceres/ceres.h>
 #include <chrono>
-
+#include <cmath>
 using namespace std;
 
 // 代价函数的计算模型
@@ -37,7 +37,7 @@ int main ( int argc, char** argv )
         double x = i/100.0;
         x_data.push_back ( x );
         y_data.push_back (
-            exp ( a*x*x + b*x + c ) + rng.gaussian ( w_sigma )
+            std::exp ( a*x*x + b*x + c ) + rng.gaussian ( w_sigma )
         );
         cout<<x_data[i]<<" "<<y_data[i]<<endl;
     }
